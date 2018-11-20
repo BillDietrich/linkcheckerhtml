@@ -1,4 +1,5 @@
 #Functionality
+
 Load an HTML, then use Alt+L, and it will generate a report on the links in the document, including broken links. It attempts to check broken links by trying to resolve HTTP & HTTPS links, and relative links (../folder/file.md) by checking if the file exist on the local file system. The result of these checks are logged in an output window on the right of the editor.
 
 Note that checking for broken links is more of an art than a science. Some sites don't actually return 404, but send you to a landing page. For example, Azure.com works this way. You can go to https://Azure.com/foo/bar and it will happily redirect you to https://Azure.com, with no 404 status returned. So take a status of "OK" with a grain of salt - you may not be arriving at the page you intend.
