@@ -1,8 +1,8 @@
 {
-  "name": "LinkCheckHTML",
+  "name": "linkcheckerhtml",
   "displayName": "HTML link checker",
   "description": "When you press Alt+L, checks for broken links in HTML.",
-  "icon": "images/linkcheckerhtmlicon.svg",
+  "icon": "images/linkcheckerhtmlicon.jpeg",
   "version": "0.1.5",
   "publisher": "BillDietrich",
   "galleryBanner": {

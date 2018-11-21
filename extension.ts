@@ -66,7 +66,7 @@ function checkLinks(document: TextDocument, diagnostics: DiagnosticCollection) {
         // Iterate over the array, generating an array of promises
         let countryCodePromise = Promise.all<Diagnostic>(links.map((link): Diagnostic => {
             // For each link, check the country code...
-            return isCountryCodeLink(link);
+            return false;
             // Then, when they are all done..
         }));
         // Finally, let's complete the promise for country code...
@@ -99,10 +99,6 @@ function generateLinkReport() {
             if(isHttpLink(link.address)) {
                 // And check if they are broken or not.
                 brokenLink(link.address, {allowRedirects: true}).then((answer) => {
-                    // Also check for country code
-                    if(hasCountryCode(link.address)) {
-                        outputChannel.appendLine(`Warning: ${link.address} on line ${lineNumber} contains a country code.`);
-                    }
                     // Log to the outputChannel
                     if(answer) {
                         outputChannel.appendLine(`Error: ${link.address} on line ${lineNumber} is unreachable.`);
@@ -138,7 +134,7 @@ function generateLinkReport() {
     });
 }
  
-// Parse the MD style links out of the document
+// Parse the HTML style links out of the document
 function getLinks(document: TextDocument): Promise<Link[]> {
     // Return a promise, since this might take a while for large documents
     return new Promise<Link[]>((resolve, reject) => {
@@ -155,16 +151,19 @@ function getLinks(document: TextDocument): Promise<Link[]> {
             // Markdown link looks like: [visibletexthere](./to/a/missing/file.md)
             // or
             //                          [visibletexthere][refstyle]
-            let links = lineText.text.match(/\[[^\[]+\]\([^\)]+\)|\[[a-zA-z0-9_-]+\]:\s*\S+/g);
+            // let links = lineText.text.match(/\[[^\[]+\]\([^\)]+\)|\[[a-zA-z0-9_-]+\]:\s*\S+/g);
+			// HTML link looks like: <a href="urlhere">
+            let links = lineText.text.match(/\<[aA]\ [hH][rR][eE][fF]=\"[^\"]+\":\s*\S+/g);
             if(links) {
                 // Iterate over the links found on this line
                 for(let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
                     // ([^\)]+) captures inline style link address
                     // (\S+) captures reference style link address
-                    var link = links[i].match(/\[[^\[]+\]\(([^\)]+)\)|\[[a-zA-z0-9_-]+\]:\s*(\S+)/);
+                    //var link = links[i].match(/\[[^\[]+\]\(([^\)]+)\)|\[[a-zA-z0-9_-]+\]:\s*(\S+)/);
+                    var link = links[i].match(/\<[aA]\ [hH][rR][eE][fF]=\"([^\"]+)\":\s*(\S+)/);
                     // Figure out which capture contains the address; inline style or reference
-                    let address = (link[2] == null) ? link[1] : link[2];
+                    let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
                         text: link[0],
@@ -182,11 +181,6 @@ function getLinks(document: TextDocument): Promise<Link[]> {
             reject;
         }
     }).catch();
-}
-
-// Check for addresses that contain country codes
-function isCountryCodeLink(link: Link): Diagnostic {
-    return false;
 }
 
 // Is this a valid HTTP/S link?
