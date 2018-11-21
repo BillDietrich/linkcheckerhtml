@@ -1,10 +1,10 @@
 {
   "name": "LinkCheckHTML",
-  "displayName": "HTTP/s and relative link checker",
-  "description": "Checks whether HTTP/s links or relative links in HTML are reachable, when you press Alt+L.",
+  "displayName": "HTML link checker",
+  "description": "When you press Alt+L, checks for broken links in HTML.",
   "icon": "images/linkcheckerhtmlicon.svg",
   "version": "0.1.5",
-  "publisher": "blackmist",
+  "publisher": "BillDietrich",
   "galleryBanner": {
     "color": "#0000FF",
     "theme": "dark"

@@ -1,4 +1,8 @@
-#Functionality
+
+THIS PROJECT IS NOT WORKING YET !!!
+
+
+##Functionality
 
 Load an HTML, then use Alt+L, and it will generate a report on the links in the document, including broken links. It attempts to check broken links by trying to resolve HTTP & HTTPS links, and relative links (../folder/file.md) by checking if the file exist on the local file system. The result of these checks are logged in an output window on the right of the editor.
 
@@ -16,7 +20,7 @@ To check for broken links, use Alt+L. This will open a new column to the right o
 
 ###0.2
 
-- Forked from "Microsoft / linkcheckermd"
+- Copied from "Microsoft / linkcheckermd"
 
 ##TODO
 
