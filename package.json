@@ -59,10 +59,8 @@
   },
   "dependencies": {
     "broken-link": "^1.0.1",
-    "broken-links": "0.0.5",
     "fs": "*",
     "path": "*",
-    "rsvp": "^4.8.4",
-    "validator": "^4.9.0"
+    "rsvp": "^4.8.4"
   }
 }

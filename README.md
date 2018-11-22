@@ -1,5 +1,5 @@
 
-THIS PROJECT IS NOT REALLY USABLE YET !!!
+THIS PROJECT IS NOT USABLE YET !!!
 
 
 ##Functionality
@@ -21,14 +21,11 @@ To check for broken links, use Alt+L. This will open a new column to the right o
 ###0.2
 
 * Copied from "Microsoft / linkcheckermd"
-* Extension works, but output on debug console only
+* Extension works, but output on debug channel only
 
 ##TODO
 
-* validator.js still failing
 * Output into a normal window.
-* Where does console.log output go ?
-* Remove scanning at activate and any change
 * Click on a broken-link notification and go to that line in source file.
 * Register extension in Marketplace.
 * Refactor broken link checking to display the actual URL that you arrived at for "OK" results that were redirects to a different URL.
@@ -42,8 +39,7 @@ I used these things:
 * node 8.10.0
 * npm 3.5.2
 * sudo npm -g install --save rsvp
-* sudo npm -g install --save validator
-* sudo npm -g install --save broken-links
+* sudo npm -g install --save broken-link
 * Yeoman
 
 Ran Yeoman to make a Typescript test extension, then copied the entire

@@ -23,9 +23,6 @@ import path = require('path');
 // For checking broken links
 //import brokenLink = require('broken-link');
 import brokenLink = require('/usr/local/lib/node_modules/broken-link/index.js');
-// For HTTP/s address validation
-//import validator = require('validator');
-import validator = require('/usr/local/lib/node_modules/validator/validator.js');
 
 //Interface for links
 interface Link {
@@ -36,57 +33,14 @@ interface Link {
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(disposables: Disposable[]) { 
-    // Create the diagnostics collection
-    let diagnostics = languages.createDiagnosticCollection();
-    
-    console.log("linkcheckerhtml: active");
-    
-    // Wire up onChange events
-    workspace.onDidChangeTextDocument(event => {
-        checkLinks(event.document, diagnostics)
-    }, undefined, disposables);
-    
-    workspace.onDidOpenTextDocument(event => {
-        checkLinks(event, diagnostics);
-    }, undefined, disposables);
-    
+export function activate(disposables: Disposable[]) {     
+    //console.log("linkcheckerhtml: active");
     commands.registerCommand('extension.generateLinkReport', generateLinkReport);
-
-    console.log("linkcheckerhtml: finished activation");
+    //console.log("linkcheckerhtml: finished activation");
 }
 
-/*
-* Checks links for errors. Currently this is just checking for a country code.
-* For example, /en-us/ in the URL.
-*
-* NOTE: Checking for broken links is not integrated in this, as checking for
-* those takes a long time, and this function needs to generate diagnostics every
-* time the document changes, so needs to complete quickly
-*/
-function checkLinks(document: TextDocument, diagnostics: DiagnosticCollection) {
-    console.log("linkcheckerhtml: checkLinks called");
-    //Clear the diagnostics because we're sending new ones each time
-    diagnostics.clear();
-    // Get all Markdown style lnks in the document
-    getLinks(document).then((links) => {
-        // Iterate over the array, generating an array of promises
-        let countryCodePromise = rsvp.Promise.all<Diagnostic>(links.map((link): Diagnostic => {
-            // For each link, check the country code...
-            return null;
-            // Then, when they are all done..
-        }));
-        // Finally, let's complete the promise for country code...
-        countryCodePromise.then((countryCodeDiag) => {
-                // Then filter out null ones
-                let filteredDiag = countryCodeDiag.filter(diagnostic => diagnostic != null);
-                // Then add the diagnostics
-                diagnostics.set(document.uri, filteredDiag);
-            })
-    }).catch();
-}
 
-// Generate a report of broken, country code, etc. links and the line they occur on
+// Generate a report of broken links and the line they occur on
 function generateLinkReport() {
     // Get the current document
     let document = window.activeTextEditor.document;
@@ -95,7 +49,10 @@ function generateLinkReport() {
     // Show the output channel
     outputChannel.show(false);	// preserveFocus == false
     //outputChannel.appendLine(`linkcheckerhtml: generateLinkReport called`);
-    // Get all HTTP style lnks in the document
+
+	//let webviewPanel = window.createWebviewPanel("", "linkcheckerhtml", ViewColumn.Beside);
+
+    // Get all HTML Anchor lnks in the document
     getLinks(document).then((links) => {
 	    //outputChannel.appendLine(`linkcheckerhtml: got ${links.length} links`);
         // Loop over the links
@@ -104,7 +61,7 @@ function generateLinkReport() {
             // Get the line number, because internally it's 0 based, but not in display
             let lineNumber = link.lineText.lineNumber + 1;
             
-            // Is it an HTTPS link or a relative link?
+            // Is it an HTTP* link or a relative link?
             if(isHttpLink(link.address)) {
                 // And check if they are broken or not.
                 brokenLink(link.address, {allowRedirects: true}).then((answer) => {
@@ -116,9 +73,9 @@ function generateLinkReport() {
                     }
                 });
             } else {
-                if(isFtpLink(link.address)) {
-                    // We don't do anything with FTP
-                    outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is an FTP link; not checked.`);
+                if(isNonHTTPLink(link.address)) {
+                    // We don't do anything with other URL types
+                    outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
                 } else {
                     // Must be a relative path, but might not be, so try it...
                     try {
@@ -188,26 +145,33 @@ function getLinks(document: TextDocument): rsvp.Promise<Link[]> {
 
 // Is this a valid HTTP/S link?
 function isHttpLink(linkToCheck: string): boolean {
-    // Use the validator to avoid writing URL checking logic
-    return validator.isURL(linkToCheck, {require_protocol: true, protocols: ['http','https']}) ? true : false;
+	var bRetVal = linkToCheck.toLowerCase().startsWith('http://');
+	if (!bRetVal)
+		bRetVal = linkToCheck.toLowerCase().startsWith('https://');
+	if (!bRetVal)
+		bRetVal = linkToCheck.toLowerCase().startsWith('shttp://');
+    return bRetVal;
 }
 
-// Is this an FTP link?
-function isFtpLink(linkToCheck: string): boolean {
-    return linkToCheck.toLowerCase().startsWith('ftp');
+// Is this a non-HTTP* link?
+function isNonHTTPLink(linkToCheck: string): boolean {
+	var bRetVal = linkToCheck.toLowerCase().startsWith('ftp://');
+	if (!bRetVal)
+		bRetVal = linkToCheck.toLowerCase().startsWith('mailto://');
+	if (!bRetVal)
+		bRetVal = linkToCheck.toLowerCase().startsWith('file://');
+	if (!bRetVal)
+		bRetVal = linkToCheck.toLowerCase().startsWith('irc://');
+	if (!bRetVal)
+		bRetVal = linkToCheck.toLowerCase().startsWith('ldap://');
+	if (!bRetVal)
+		bRetVal = linkToCheck.toLowerCase().startsWith('telnet://');
+	if (!bRetVal)
+		bRetVal = linkToCheck.toLowerCase().startsWith('sftp://');
+	if (!bRetVal)
+		bRetVal = linkToCheck.toLowerCase().startsWith('news://');
+	if (!bRetVal)
+		bRetVal = linkToCheck.toLowerCase().startsWith('news:');
+    return bRetVal;
 }
 
-// Generate a diagnostic object
-function createDiagnostic(severity: DiagnosticSeverity, markdownLink, lineText: TextLine, message): Diagnostic {
-    // Get the location of the text in the document
-    // based on position within the line of text it occurs in
-    let startPos = lineText.text.indexOf(markdownLink);
-    let endPos = startPos + markdownLink.length -1;
-    let start = new Position(lineText.lineNumber,startPos);
-    let end = new Position(lineText.lineNumber, endPos);
-    let range = new Range(start, end);
-    // Create the diagnostic object
-    let diag = new Diagnostic(range, message, severity);
-    // Return the diagnostic
-    return diag;
-}
