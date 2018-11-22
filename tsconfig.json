@@ -3,8 +3,12 @@
 		"module": "commonjs",
         "target": "ES5",
 		"outDir": "out",
-		"noLib": true,
-		"sourceMap": true
+		"lib": ["es2017"],
+        "moduleResolution": "node",
+		"sourceMap": true,
+		"typeRoots": [
+            "node_modules/@types"
+		]
 	},
 	"exclude": [
 		"node_modules"

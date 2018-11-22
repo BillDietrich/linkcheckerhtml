@@ -3,7 +3,7 @@
   "displayName": "HTML link checker",
   "description": "When you press Alt+L, checks for broken links in HTML.",
   "icon": "images/linkcheckerhtmlicon.jpeg",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "publisher": "BillDietrich",
   "galleryBanner": {
     "color": "#0000FF",
@@ -20,7 +20,8 @@
     "url": "https://github.com/BillDietrich/linkcheckerhtml.git"
   },
   "categories": [
-    "Linters", "Other"
+    "Linters",
+    "Other"
   ],
   "engines": {
     "vscode": "^1.29.0"
@@ -30,12 +31,12 @@
   ],
   "main": "./out/extension",
   "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "npm run compile && node ./node_modules/vscode/bin/test"
- },
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+  },
   "contributes": {
     "commands": [
       {
@@ -53,13 +54,15 @@
   "devDependencies": {
     "vscode": "*",
     "typescript": "*",
-        "@types/node": "^8.10.25",
-        "@types/mocha": "^2.2.42"
+    "@types/node": "^8.10.25",
+    "@types/mocha": "^2.2.42"
   },
   "dependencies": {
     "broken-link": "^1.0.1",
-    "validator": "^4.1.0",
+    "broken-links": "0.0.5",
+    "fs": "*",
     "path": "*",
-    "fs": "*"
+    "rsvp": "^4.8.4",
+    "validator": "^4.9.0"
   }
 }

@@ -15,13 +15,17 @@ import {
     TextDocument,
     TextLine,
     ViewColumn} from 'vscode';
-// For HTTP/s address validation
-import validator = require('validator');
-// For checking broken links
-import brokenLink = require('broken-link');
+// replacement for Promise which was removed from Node.js circa 2016
+import rsvp = require('rsvp');
+import fs = require('fs');
 // For checking relative URIs against the local file system
 import path = require('path');
-import fs = require('fs');
+// For checking broken links
+//import brokenLink = require('broken-link');
+import brokenLink = require('/usr/local/lib/node_modules/broken-link/index.js');
+// For HTTP/s address validation
+//import validator = require('validator');
+import validator = require('/usr/local/lib/node_modules/validator/validator.js');
 
 //Interface for links
 interface Link {
@@ -36,7 +40,7 @@ export function activate(disposables: Disposable[]) {
     // Create the diagnostics collection
     let diagnostics = languages.createDiagnosticCollection();
     
-    console.log("Link checker active");
+    console.log("linkcheckerhtml: active");
     
     // Wire up onChange events
     workspace.onDidChangeTextDocument(event => {
@@ -48,6 +52,8 @@ export function activate(disposables: Disposable[]) {
     }, undefined, disposables);
     
     commands.registerCommand('extension.generateLinkReport', generateLinkReport);
+
+    console.log("linkcheckerhtml: finished activation");
 }
 
 /*
@@ -59,14 +65,15 @@ export function activate(disposables: Disposable[]) {
 * time the document changes, so needs to complete quickly
 */
 function checkLinks(document: TextDocument, diagnostics: DiagnosticCollection) {
+    console.log("linkcheckerhtml: checkLinks called");
     //Clear the diagnostics because we're sending new ones each time
     diagnostics.clear();
     // Get all Markdown style lnks in the document
     getLinks(document).then((links) => {
         // Iterate over the array, generating an array of promises
-        let countryCodePromise = Promise.all<Diagnostic>(links.map((link): Diagnostic => {
+        let countryCodePromise = rsvp.Promise.all<Diagnostic>(links.map((link): Diagnostic => {
             // For each link, check the country code...
-            return false;
+            return null;
             // Then, when they are all done..
         }));
         // Finally, let's complete the promise for country code...
@@ -84,14 +91,16 @@ function generateLinkReport() {
     // Get the current document
     let document = window.activeTextEditor.document;
     // Create an output channel for displaying broken links
-    let outputChannel = window.createOutputChannel("Checked links");
-    // Show the output channel in column three
-    outputChannel.show(ViewColumn.Three);
-    
-    // Get all Markdown style lnks in the document
+    let outputChannel = window.createOutputChannel("linkcheckerhtml");
+    // Show the output channel
+    outputChannel.show(false);	// preserveFocus == false
+    //outputChannel.appendLine(`linkcheckerhtml: generateLinkReport called`);
+    // Get all HTTP style lnks in the document
     getLinks(document).then((links) => {
+	    //outputChannel.appendLine(`linkcheckerhtml: got ${links.length} links`);
         // Loop over the links
         links.forEach(link => {
+		    //outputChannel.appendLine(`linkcheckerhtml: link on line ${link.lineText.lineNumber + 1} is "${link.address}"`);
             // Get the line number, because internally it's 0 based, but not in display
             let lineNumber = link.lineText.lineNumber + 1;
             
@@ -103,13 +112,13 @@ function generateLinkReport() {
                     if(answer) {
                         outputChannel.appendLine(`Error: ${link.address} on line ${lineNumber} is unreachable.`);
                     } else {
-                        outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber}.`);
+                        outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is accessible.`);
                     }
                 });
             } else {
                 if(isFtpLink(link.address)) {
                     // We don't do anything with FTP
-                    outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is an FTP link.`);
+                    outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is an FTP link; not checked.`);
                 } else {
                     // Must be a relative path, but might not be, so try it...
                     try {
@@ -120,9 +129,9 @@ function generateLinkReport() {
                         let fullPath = path.resolve(currentWorkingDirectory, link.address).split('#')[0];
                         // Check if the file exists and log appropriately
                         if(fs.existsSync(fullPath)) {
-                            outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber}.`);
+                            outputChannel.appendLine(`Info: local file ${link.address} on line ${lineNumber} exists.`);
                         } else {
-                            outputChannel.appendLine(`Error: ${link.address} on line ${lineNumber} does not exist.`);
+                            outputChannel.appendLine(`Error: local file ${link.address} on line ${lineNumber} does not exist.`);
                         }
                     } catch (error) {
                         // If there's an error, log the link
@@ -132,12 +141,14 @@ function generateLinkReport() {
             }
         });
     });
+    //outputChannel.appendLine(`linkcheckerhtml: generateLinkReport returning`);
 }
  
-// Parse the HTML style links out of the document
-function getLinks(document: TextDocument): Promise<Link[]> {
+// Parse the HTML Anchor links out of the document
+function getLinks(document: TextDocument): rsvp.Promise<Link[]> {
+    console.log("linkcheckerhtml: getLinks called");
     // Return a promise, since this might take a while for large documents
-    return new Promise<Link[]>((resolve, reject) => {
+    return new rsvp.Promise<Link[]>((resolve, reject) => {
         // Create arrays to hold links as we parse them out
         let linksToReturn = new Array<Link>();
         // Get lines in the document
@@ -148,21 +159,13 @@ function getLinks(document: TextDocument): Promise<Link[]> {
             // Get the text for the current line
             let lineText = document.lineAt(lineNumber);
             // Are there links?
-            // Markdown link looks like: [visibletexthere](./to/a/missing/file.md)
-            // or
-            //                          [visibletexthere][refstyle]
-            // let links = lineText.text.match(/\[[^\[]+\]\([^\)]+\)|\[[a-zA-z0-9_-]+\]:\s*\S+/g);
 			// HTML link looks like: <a href="urlhere">
-            let links = lineText.text.match(/\<[aA]\ [hH][rR][eE][fF]=\"[^\"]+\":\s*\S+/g);
+            let links = lineText.text.match(/<[aA]\s+[hH][rR][eE][fF]="[^"]*"/g);
             if(links) {
                 // Iterate over the links found on this line
                 for(let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-                    // ([^\)]+) captures inline style link address
-                    // (\S+) captures reference style link address
-                    //var link = links[i].match(/\[[^\[]+\]\(([^\)]+)\)|\[[a-zA-z0-9_-]+\]:\s*(\S+)/);
-                    var link = links[i].match(/\<[aA]\ [hH][rR][eE][fF]=\"([^\"]+)\":\s*(\S+)/);
-                    // Figure out which capture contains the address; inline style or reference
+                    var link = links[i].match(/<[aA]\s+[hH][rR][eE][fF]="([^"]*)"/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
