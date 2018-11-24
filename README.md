@@ -57,9 +57,6 @@ I used these things:
 * VSCode 1.29.1 (which says Node.js 8.9.3)
 * node 8.10.0
 * npm 3.5.2
+* sudo npm -g install --save pinkie-promise (used by broken-link)
 * sudo npm -g install --save broken-link
-* Yeoman
-
-Ran Yeoman to make a Typescript test extension, then copied the entire
-node_module directory tree to linkcheckerhtml directory.
 
