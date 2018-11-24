@@ -31,9 +31,7 @@ To check for broken links, open an HTML file and then press `Alt-L`.  Broken lin
 
 ##TODO
 
-* Running multiple times in a row causes mess.
-* Check local "#name.ext" links.
-* Deactivate().
+* Status indication remains when it's done checking.
 * Test outside debug environment.
 * Warn about redirects.
 * Allow extension options ?  Redirect handling, info about non-handled schemes.
@@ -41,7 +39,7 @@ To check for broken links, open an HTML file and then press `Alt-L`.  Broken lin
 * Test Img-src, Script-src and Link-href tags too.
 * Check mailto links for proper format ?
 * Memory leaks ?
-* No indication when it's done checking ?
+* Deactivate().
 * Remove hard-coded paths.
 * Allow anyone to file Issues.
 * Register extension in Marketplace.

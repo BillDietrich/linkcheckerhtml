@@ -36,6 +36,8 @@ interface Link {
 }
 
 let myStatusBarItem: StatusBarItem;
+let diagnosticsCollection: DiagnosticCollection;
+
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -60,6 +62,8 @@ export function activate({ subscriptions }: ExtensionContext) {
 	myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 0);
 	subscriptions.push(myStatusBarItem);
 	myStatusBarItem.hide();
+
+	diagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
 
     //outputChannel.appendLine(`linkcheckerhtml.activate: finished`);
 }
@@ -94,7 +98,6 @@ function generateLinkReport() {
 		// Promise resolved now, so we're in a different context than before
 	    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: got ${links.length} links`);
 
-		var diagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
 		var diagnosticsArray = new Array<Diagnostic>();
 		var diag = null;
 		diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
