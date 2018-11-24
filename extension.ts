@@ -7,6 +7,7 @@ import {
     Diagnostic, 
     DiagnosticSeverity,
     DiagnosticCollection,
+	ExtensionContext,
     Range,
     OutputChannel,
     Position,
@@ -14,7 +15,9 @@ import {
     Disposable,
     TextDocument,
     TextLine,
-    ViewColumn} from 'vscode';
+    StatusBarItem,
+	StatusBarAlignment
+	} from 'vscode';
 // replacement for Promise which was removed from Node.js circa 2016
 //var promise = require('pinkie-promise');
 //import rsvp = require('rsvp');
@@ -32,17 +35,18 @@ interface Link {
     lineText: TextLine
 }
 
+let myStatusBarItem: StatusBarItem;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(disposables: Disposable[]) {     
+export function activate({ subscriptions }: ExtensionContext) {     
     //let outputChannel = window.createOutputChannel("linkcheckerhtml");
     // Show the output channel
     //outputChannel.show(false);	// preserveFocus == false
     //outputChannel.appendLine(`linkcheckerhtml.activate: active`);
 	//outputChannel.appendLine(`linkcheckerhtml.activate: uri = ${window.activeTextEditor.document.uri.toString()}`);
     //outputChannel.appendLine(`linkcheckerhtml.activate: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
-	
+
 /*
     var diagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
 	var diagnosticsArray = new Array<Diagnostic>();
@@ -53,15 +57,21 @@ export function activate(disposables: Disposable[]) {
 
     commands.registerCommand('extension.generateLinkReport', generateLinkReport);
 
+	myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 0);
+	subscriptions.push(myStatusBarItem);
+	myStatusBarItem.hide();
+
     //outputChannel.appendLine(`linkcheckerhtml.activate: finished`);
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() {
+	myStatusBarItem.dispose();
 }
 
 // Generate a report of broken links and the line they occur on
 function generateLinkReport() {
+
     // Get the current document
     var document = window.activeTextEditor.document;
 
@@ -74,14 +84,20 @@ function generateLinkReport() {
     //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
     //document = window.visibleTextEditors[1].document;
 
+	myStatusBarItem.text = `Checking for broken links ...`;
+	myStatusBarItem.show();
+
     // Get all HTML Anchor links in the document
-    getLinks(document).then((links) => {
+    let p1 = getLinks(document);
+	p1.then((links) => {
+		// callback function for the "success" branch of the p1 Promise
 		// Promise resolved now, so we're in a different context than before
 	    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: got ${links.length} links`);
 
-	    var diagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
+		var diagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
 		var diagnosticsArray = new Array<Diagnostic>();
 		var diag = null;
+		diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
 
 /*
 		diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "messageHHHH", DiagnosticSeverity.Error);
@@ -94,17 +110,25 @@ function generateLinkReport() {
 		diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
 */
 
+/*
+		if (links.length == 0)
+			myStatusBarItem.hide();
+*/
+
         // Loop over the links
         links.forEach(link => {
 		    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: link on line ${link.lineText.lineNumber + 1} is "${link.address}"`);
             var lineNumber = link.lineText.lineNumber;
             
             // Is it an HTTP* link or a relative link?
-            if(isHttpLink(link.address)) {
+            if (isHttpLink(link.address)) {
                 // And check if they are broken or not.
-                brokenLink(link.address, {allowRedirects: true}).then((answer) => {
+                let p2 = brokenLink(link.address, {allowRedirects: true});
+				p2.then((answer) =>
+				{
+					// callback function for the "success" branch of the p2 Promise
                     // Log to the outputChannel
-                    if(answer) {
+                    if (answer) {
                         //outputChannel.appendLine(`Error: ${link.address} on line ${lineNumber} is unreachable.`);
 					    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
 						let start = link.lineText.text.indexOf(link.address);
@@ -116,9 +140,10 @@ function generateLinkReport() {
                     } else {
                         //outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is accessible.`);
                     }
-                });
+                }
+				);
             } else {
-                if(isNonHTTPLink(link.address)) {
+                if (isNonHTTPLink(link.address)) {
                     // We don't do anything with other URL types
                     //outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
 					diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
@@ -136,7 +161,7 @@ function generateLinkReport() {
                         // The `.split('#')[0]` at the end is so that relative links that also reference an anchor in the document will work with file checking.
                         var fullPath = path.resolve(currentWorkingDirectory, link.address).split('#')[0];
                         // Check if the file exists and log appropriately
-                        if(fs.existsSync(fullPath)) {
+                        if (fs.existsSync(fullPath)) {
                             //outputChannel.appendLine(`Info: local file ${link.address} on line ${lineNumber} exists.`);
                         } else {
                             //outputChannel.appendLine(`Error: local file ${link.address} on line ${lineNumber} does not exist.`);
@@ -154,8 +179,11 @@ function generateLinkReport() {
                 }
             }
         });
-
-    });
+    }
+	);
+	//myStatusBarItem.text = `zzzzzzzzzzzzzzzzzzz`;
+	//myStatusBarItem.show();
+	//myStatusBarItem.hide();	// want to do this when all Promises are finished
 
     //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: returning`);
 }
@@ -171,13 +199,13 @@ function getLinks(document: TextDocument): Promise<Link[]> {
         let lineCount = document.lineCount;
         
         //Loop over the lines in a document
-        for(let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
+        for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
             // Get the text for the current line
             let lineText = document.lineAt(lineNumber);
             // Are there links?
 			// HTML link looks like: <a href="urlhere">
             let links = lineText.text.match(/<a\s+href="[^"]*"/g);
-            if(links) {
+            if (links) {
                 // Iterate over the links found on this line
                 for(let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
@@ -195,7 +223,7 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 }
             }
         }
-        if(linksToReturn.length > 0) {
+        if (linksToReturn.length > 0) {
             //Return the populated array, which completes the promise.
             resolve(linksToReturn);
         } else {

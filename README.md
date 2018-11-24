@@ -26,22 +26,23 @@ To check for broken links, open an HTML file and then press `Alt-L`.  Broken lin
 
 ###0.2.0
 
-* Copied from "Microsoft / linkcheckermd"
-* Extension works, but positions on lines are wrong, probably has memory leaks, not much testing.
+* Copied from "Microsoft / linkcheckermd" and then greatly modified.
+* Extension works, but probably has memory leaks, not much testing.
 
 ##TODO
 
-* Hard-coded paths.
-* Local "#name" links.
-* Memory leaks ?
+* Running multiple times in a row causes mess.
+* Check local "#name.ext" links.
 * Deactivate().
 * Test outside debug environment.
 * Warn about redirects.
 * Allow extension options ?  Redirect handling, info about non-handled schemes.
-* Local copy of node_modules tree.
+* Remove need for local copy of node_modules tree ?
 * Test Img-src, Script-src and Link-href tags too.
 * Check mailto links for proper format ?
+* Memory leaks ?
 * No indication when it's done checking ?
+* Remove hard-coded paths.
 * Allow anyone to file Issues.
 * Register extension in Marketplace.
 
@@ -51,12 +52,19 @@ To check for broken links, open an HTML file and then press `Alt-L`.  Broken lin
 
 ##Development
 
-I used these things:
+I don't really know what I'm doing with much of this stuff, probably I'm doing some things stupidly.
 
+I used:
 * Linux Mint 19
 * VSCode 1.29.1 (which says Node.js 8.9.3)
 * node 8.10.0
 * npm 3.5.2
 * sudo npm -g install --save pinkie-promise (used by broken-link)
 * sudo npm -g install --save broken-link
+* Yeoman
 
+I did:
+* Ran Yeoman to make a Typescript test extension, then copied the entire node_module directory tree from there to linkcheckerhtml directory.
+* Put path to node_module directory tree in vscode-typings.d.ts
+* Extension.ts has a hard-coded path
+to broken-link/index.js
