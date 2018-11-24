@@ -6,9 +6,11 @@ THIS PROJECT HASN'T BEEN TESTED MUCH YET !!!
 
 Check for broken links in anchor-href tags in HTML documents. It checks broken links by trying to resolve HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exist on the local file system.
 
+Also checks for badly-formatted mailto links.
+
 Limitations:
 * "href" has to be first attribute in anchor-href tag.
-* Key parts of tag (a and href) must be all on one line.
+* Key parts of anchor-href tag (a and href) must be all on one line.
 * Doesn't check local "#name" links.
 * Written to match the behavior of HtmlHint, not browsers.  HtmlHint objects to uppercase in tag and attribute names, doesn't allow single-quotes instead of double-quotes.
 
@@ -37,7 +39,6 @@ To check for broken links, open an HTML file and then press `Alt-L`.  Broken lin
 * Allow extension options ?  Redirect handling, info about non-handled schemes.
 * Remove need for local copy of node_modules tree ?
 * Test Img-src, Script-src and Link-href tags too.
-* Check mailto links for proper format ?
 * Memory leaks ?
 * Deactivate().
 * Remove hard-coded paths.

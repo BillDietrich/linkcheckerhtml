@@ -148,13 +148,24 @@ function generateLinkReport() {
             } else {
                 if (isNonHTTPLink(link.address)) {
                     // We don't do anything with other URL types
-                    //outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
-					diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
-					let start = link.lineText.text.indexOf(link.address);
-					let end = start + link.address.length;
-					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
-					diagnosticsArray.push(diag);
-					diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
+					if (isMailtoLink(link.address)){
+						if (!isWellFormedMailtoLink(link.address)){
+							diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
+							let start = link.lineText.text.indexOf(link.address);
+							let end = start + link.address.length;
+							diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is badly-formed.`, DiagnosticSeverity.Error);
+							diagnosticsArray.push(diag);
+							diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
+						}
+					} else {
+                    	//outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
+						diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
+						let start = link.lineText.text.indexOf(link.address);
+						let end = start + link.address.length;
+						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
+						diagnosticsArray.push(diag);
+						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
+					}
                 } else {
                     // Must be a relative path, but might not be, so try it...
                     try {
@@ -237,34 +248,54 @@ function getLinks(document: TextDocument): Promise<Link[]> {
 }
 
 // Is this a valid HTTP/S link?
-function isHttpLink(linkToCheck: string): boolean {
-	var bRetVal = linkToCheck.toLowerCase().startsWith('http://');
+function isHttpLink(UriToCheck: string): boolean {
+	var bRetVal = UriToCheck.toLowerCase().startsWith('http://');
 	if (!bRetVal)
-		bRetVal = linkToCheck.toLowerCase().startsWith('https://');
+		bRetVal = UriToCheck.toLowerCase().startsWith('https://');
 	if (!bRetVal)
-		bRetVal = linkToCheck.toLowerCase().startsWith('shttp://');
+		bRetVal = UriToCheck.toLowerCase().startsWith('shttp://');
     return bRetVal;
 }
 
 // Is this a non-HTTP* link?
-function isNonHTTPLink(linkToCheck: string): boolean {
-	var bRetVal = linkToCheck.toLowerCase().startsWith('ftp://');
+function isNonHTTPLink(UriToCheck: string): boolean {
+	var bRetVal = UriToCheck.toLowerCase().startsWith('ftp://');
 	if (!bRetVal)
-		bRetVal = linkToCheck.toLowerCase().startsWith('mailto://');
+		bRetVal = UriToCheck.toLowerCase().startsWith('file://');
 	if (!bRetVal)
-		bRetVal = linkToCheck.toLowerCase().startsWith('file://');
+		bRetVal = UriToCheck.toLowerCase().startsWith('irc://');
 	if (!bRetVal)
-		bRetVal = linkToCheck.toLowerCase().startsWith('irc://');
+		bRetVal = UriToCheck.toLowerCase().startsWith('ldap://');
 	if (!bRetVal)
-		bRetVal = linkToCheck.toLowerCase().startsWith('ldap://');
+		bRetVal = UriToCheck.toLowerCase().startsWith('telnet://');
 	if (!bRetVal)
-		bRetVal = linkToCheck.toLowerCase().startsWith('telnet://');
+		bRetVal = UriToCheck.toLowerCase().startsWith('sftp://');
 	if (!bRetVal)
-		bRetVal = linkToCheck.toLowerCase().startsWith('sftp://');
+		bRetVal = UriToCheck.toLowerCase().startsWith('news://');
 	if (!bRetVal)
-		bRetVal = linkToCheck.toLowerCase().startsWith('news://');
+		bRetVal = UriToCheck.toLowerCase().startsWith('news:');
 	if (!bRetVal)
-		bRetVal = linkToCheck.toLowerCase().startsWith('news:');
+		bRetVal = UriToCheck.toLowerCase().startsWith('mailto:');
+    return bRetVal;
+}
+
+// Is this a mailto link?
+function isMailtoLink(UriToCheck: string): boolean {
+	var bRetVal = UriToCheck.toLowerCase().startsWith('mailto:');
+    return bRetVal;
+}
+
+// Is this a validly-formatted mailto link?
+// Can be:
+//		mailto:bill@corp.com
+//		mailto:bill@corp.com?lotsmorestuff (we won't check the lotsmorestuff)
+function isWellFormedMailtoLink(UriToCheck: string): boolean {
+	var regex1 = /mailto:[a-z0-9\.\+_]+@[a-z0-9]+\.[a-z][a-z]+$/i;
+	var bRetVal = regex1.test(UriToCheck);
+	if (!bRetVal) {
+		var regex2 = /mailto:[a-z0-9\.\+_]+@[a-z0-9]+\.[a-z][a-z]+\?.+/i;
+		bRetVal = regex2.test(UriToCheck);
+	}
     return bRetVal;
 }
 
