@@ -60,7 +60,6 @@
   "dependencies": {
     "broken-link": "^1.0.1",
     "fs": "*",
-    "path": "*",
-    "rsvp": "^4.8.4"
+    "path": "*"
   }
 }
