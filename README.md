@@ -7,10 +7,11 @@ THIS PROJECT HASN'T BEEN TESTED MUCH YET !!!
 Check for broken links in anchor-href tags in HTML documents. It checks broken links by trying to resolve HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exist on the local file system.
 
 Limitations:
-* Can't have anything between "a" and "href" in anchor-href tag.
+* "href" has to be first attribute in anchor-href tag.
 * Key parts of tag (a and href) must be all on one line.
+* Maybe odd link contents will fool the code, such as escaped quotes in a link (not sure that's even legal).
 * Doesn't check local "#name" links.
-* Written to match the behavior of HtmlHint, not browsers.  HtmlHint objects to uppercase in "a" or "href", may not allow single-quotes instead of double-quotes.
+* Written to match the behavior of HtmlHint, not browsers.  HtmlHint objects to uppercase in tag and attribute names, doesn't allow single-quotes instead of double-quotes.
 
 Note that checking for broken links is more of an art than a science. Some sites don't actually return 404, but send you to a landing page. For example, Azure.com works this way. You can go to https://Azure.com/foo/bar and it will happily redirect you to https://Azure.com, with no 404 status returned. So take a status of "OK" with a grain of salt - you may not be arriving at the page you intend.
 
@@ -24,14 +25,13 @@ To check for broken links, open an HTML file and then press Alt+L.  See the stan
 
 ##Changes
 
-###0.2
+###0.2.0
 
 * Copied from "Microsoft / linkcheckermd"
 * Extension works, but positions on lines are wrong, probably has memory leaks, not much testing.
 
 ##TODO
 
-* Flatten directory structure.
 * Line-character-nums in diagnostics.
 * Hard-coded paths.
 * Case-insensitive in Anchor tag ?

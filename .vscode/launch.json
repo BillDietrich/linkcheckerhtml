@@ -2,19 +2,6 @@
 {
 	"version": "0.1.0",
 	"configurations": [
-        {
-            "name": "Extension",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}"
-            ],
-            "outFiles": [
-                "${workspaceFolder}/out/**/*.js"
-            ],
-            "preLaunchTask": "npm: watch"
-        },
 		{
 			"name": "Launch Extension",
 			"type": "extensionHost",
@@ -23,7 +10,8 @@
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}" ],
 			"stopOnEntry": false,
 			"sourceMaps": true,
-			"outFiles": ["out/extension.js"]
+			"outDir": "out",
+			"preLaunchTask": "npm"
 		}
 	]
 }

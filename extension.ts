@@ -43,7 +43,6 @@ export function activate(disposables: Disposable[]) {
 	//outputChannel.appendLine(`linkcheckerhtml.activate: uri = ${window.activeTextEditor.document.uri.toString()}`);
     //outputChannel.appendLine(`linkcheckerhtml.activate: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
 	
-
 /*
     var diagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
 	var diagnosticsArray = new Array<Diagnostic>();
@@ -57,6 +56,9 @@ export function activate(disposables: Disposable[]) {
     //outputChannel.appendLine(`linkcheckerhtml.activate: finished`);
 }
 
+// this method is called when your extension is deactivated
+export function deactivate() {
+}
 
 // Generate a report of broken links and the line they occur on
 function generateLinkReport() {
