@@ -107,8 +107,10 @@ function generateLinkReport() {
                     if(answer) {
                         //outputChannel.appendLine(`Error: ${link.address} on line ${lineNumber} is unreachable.`);
 					    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
+						let start = link.lineText.text.indexOf(link.address);
+						let end = start + link.address.length;
 						//diag = new Diagnostic(new Range(new Position(15,10),new Position(5,20)), "messageZZZZZZZZ", DiagnosticSeverity.Error);
-						diag = new Diagnostic(new Range(new Position(lineNumber,2),new Position(lineNumber,20)), `${link.address} is unreachable.`, DiagnosticSeverity.Error);
+						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable.`, DiagnosticSeverity.Error);
 						diagnosticsArray.push(diag);
 						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
                     } else {
@@ -120,7 +122,9 @@ function generateLinkReport() {
                     // We don't do anything with other URL types
                     //outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
 					diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
-					diag = new Diagnostic(new Range(new Position(lineNumber,2),new Position(lineNumber,20)), `${link.address} is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
+					let start = link.lineText.text.indexOf(link.address);
+					let end = start + link.address.length;
+					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
 					diagnosticsArray.push(diag);
 					diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
                 } else {
@@ -137,7 +141,9 @@ function generateLinkReport() {
                         } else {
                             //outputChannel.appendLine(`Error: local file ${link.address} on line ${lineNumber} does not exist.`);
 						    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
-							diag = new Diagnostic(new Range(new Position(lineNumber,2),new Position(lineNumber,20)), `Local file ${link.address} does not exist.`, DiagnosticSeverity.Error);
+							let start = link.lineText.text.indexOf(link.address);
+							let end = start + link.address.length;
+							diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Local file ${link.address} does not exist.`, DiagnosticSeverity.Error);
 							diagnosticsArray.push(diag);
 							diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
                         }
