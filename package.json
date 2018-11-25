@@ -49,6 +49,34 @@
         "command": "extension.generateLinkReport",
         "key": "Alt+L"
       }
+    ],
+    "configuration": [
+		{
+        "type": "object",
+        "title": "HTML link checker",
+        "properties": {
+            "linkcheckerhtml.reportNonHandledSchemes": {
+                "type": "boolean",
+                "default": true,
+                "description": "Report (as Information) links with URI schemes not checked by the checker, such as FTP and Telnet."
+            },
+            "linkcheckerhtml.reportRedirectAsError": {
+                "type": "boolean",
+                "default": true,
+                "description": "Report (as Error) links that get redirected."
+            },
+			"linkcheckerhtml.checkMailtoDestFormat": {
+                "type": "boolean",
+                "default": true,
+                "description": "Check format of email addresses in mailto links."
+            },
+            "linkcheckerhtml.placeholderforlater": {
+                "type": ["string", "null"],
+                "default": null,
+                "description": "Specifies the folder path"
+            }
+        }
+		}
     ]
   },
   "devDependencies": {

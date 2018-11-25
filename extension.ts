@@ -147,9 +147,9 @@ function generateLinkReport() {
 				);
             } else {
                 if (isNonHTTPLink(link.address)) {
-                    // We don't do anything with other URL types
-					if (isMailtoLink(link.address)){
-						if (!isWellFormedMailtoLink(link.address)){
+                    let bCheckMailtoDestFormat = workspace.getConfiguration('linkcheckerhtml').checkMailtoDestFormat;
+					if (bCheckMailtoDestFormat && isMailtoLink(link.address)) {
+						if (!isWellFormedMailtoLink(link.address)) {
 							diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
 							let start = link.lineText.text.indexOf(link.address);
 							let end = start + link.address.length;
@@ -158,13 +158,16 @@ function generateLinkReport() {
 							diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
 						}
 					} else {
-                    	//outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
-						diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
-						let start = link.lineText.text.indexOf(link.address);
-						let end = start + link.address.length;
-						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
-						diagnosticsArray.push(diag);
-						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
+	                    let bReportNonHandledSchemes = workspace.getConfiguration('linkcheckerhtml').reportNonHandledSchemes;
+						if (bReportNonHandledSchemes) {
+                    		//outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
+							diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
+							let start = link.lineText.text.indexOf(link.address);
+							let end = start + link.address.length;
+							diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
+							diagnosticsArray.push(diag);
+							diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
+						}
 					}
                 } else {
                     // Must be a relative path, but might not be, so try it...
@@ -334,11 +337,13 @@ function isMailtoLink(UriToCheck: string): boolean {
 // Can be:
 //		mailto:bill@corp.com
 //		mailto:bill@corp.com?lotsmorestuff (we won't check the lotsmorestuff)
+// https://en.wikipedia.org/wiki/Email_address#Syntax
+// Doesn't check for lots of details such as "hyphen can't be first or last char of domain name"
 function isWellFormedMailtoLink(UriToCheck: string): boolean {
-	var regex1 = /mailto:[a-z0-9\.\+_]+@[a-z0-9]+\.[a-z][a-z]+$/i;
+	var regex1 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-\.]+$/i;
 	var bRetVal = regex1.test(UriToCheck);
 	if (!bRetVal) {
-		var regex2 = /mailto:[a-z0-9\.\+_]+@[a-z0-9]+\.[a-z][a-z]+\?.+/i;
+		var regex2 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-\.]+\?.+/i;
 		bRetVal = regex2.test(UriToCheck);
 	}
     return bRetVal;

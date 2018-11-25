@@ -1,5 +1,7 @@
+		HTML link checker
+		-----------------
 
-THIS PROJECT HASN'T BEEN TESTED MUCH YET !!!
+THIS PROJECT ISN'T RELEASED YET !!!
 
 
 ##Functionality
@@ -13,6 +15,7 @@ Limitations:
 * Tag and first attribute must be on the same line.
 * Doesn't check local "#name" links.
 * Written to match the behavior of HtmlHint, not browsers.  HtmlHint objects to uppercase in tag and attribute names, doesn't allow single-quotes instead of double-quotes.
+* Doesn't check EVERY detail of the email address spec in mailto links.  Just a cursory check.
 
 Note that checking for broken links is more of an art than a science. Some sites don't actually return 404, but send you to a landing page. For example, Azure.com works this way. You can go to https://Azure.com/foo/bar and it will happily redirect you to https://Azure.com, with no 404 status returned. So take a status of "OK" with a grain of salt - you may not be arriving at the page you intend.
 
@@ -33,11 +36,11 @@ To check for broken links, open an HTML file and then press `Alt-L`.  Broken lin
 
 ##TODO
 
+* Test on many real web pages.
 * Status indication remains when it's done checking.
 * Get rid of: "href" or "src" has to be first attribute in the tag.
-* Allow extension options ?  Redirect handling, info about non-handled schemes.
 * Test outside debug environment.
-* Warn about redirects.
+* Warn about redirects; implement redirect configuration setting.
 * Remove need for local copy of node_modules tree ?
 * Memory leaks ?
 * Remove hard-coded paths.
