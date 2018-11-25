@@ -10,7 +10,7 @@ NEWEXTSDIR=~/.vscode/extensions/linkcheckerhtml
 rm -frIv $NEWEXTSDIR
 mkdir $NEWEXTSDIR
 
-cp linkcheckerhtmlicon.jpeg $NEWEXTSDIR
+cp linkcheckerhtmlicon.png $NEWEXTSDIR
 cp LICENSE.md $NEWEXTSDIR
 cp -r node_modules $NEWEXTSDIR
 cp -r out $NEWEXTSDIR
