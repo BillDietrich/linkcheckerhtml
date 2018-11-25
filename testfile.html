@@ -30,9 +30,17 @@ A <a href="news:rec.boats.cruising">USENET link</a>.
 <br /><br />
 Two links on one line <a href="ftp://xxx">FTP link2</a> and <a href="ftp://zzz">FTP link3</a>.
 <br /><br />
+Two identical-target links on one line <a href="./nofile.html">first</a> and <a href="./nofile.html">second</a>.
+<br /><br />
 Mailto links: <a href="mailto:a1b2C3@yahoo.com">well-formed</a>, <a href="mailto:a1b2C3@yahoo">badly-formed</a>,
 <a href="mailto:a1b2C3yahoo.com">badly-formed</a>, <a href="mailto:a1b2C3@yahoo.com?Subject=xxx">well-formed</a>,
 <a href="mailto:a1b2C3@yahoo.com?">badly-formed</a>.
+<br /><br />
+link-href good: <link href="./testfile.html" /> and link-href bad: <a href="./nofile.html" />.
+<br /><br />
+<script src="./testfile.html">script; src; good;</script> and <script src="./nofile.html">script; src; bad;</script>.
+<br /><br />
+img-src good: <img src="./testfile.html" /> and img-src bad: <img src="./nofile.html" />.
 
 </body>
 </html>

@@ -137,7 +137,7 @@ function generateLinkReport() {
 						let start = link.lineText.text.indexOf(link.address);
 						let end = start + link.address.length;
 						//diag = new Diagnostic(new Range(new Position(15,10),new Position(5,20)), "messageZZZZZZZZ", DiagnosticSeverity.Error);
-						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable.`, DiagnosticSeverity.Error);
+						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is unreachable.`, DiagnosticSeverity.Error);
 						diagnosticsArray.push(diag);
 						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
                     } else {
@@ -153,7 +153,7 @@ function generateLinkReport() {
 							diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
 							let start = link.lineText.text.indexOf(link.address);
 							let end = start + link.address.length;
-							diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is badly-formed.`, DiagnosticSeverity.Error);
+							diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is badly-formed.`, DiagnosticSeverity.Error);
 							diagnosticsArray.push(diag);
 							diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
 						}
@@ -162,7 +162,7 @@ function generateLinkReport() {
 						diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
 						let start = link.lineText.text.indexOf(link.address);
 						let end = start + link.address.length;
-						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
+						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
 						diagnosticsArray.push(diag);
 						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
 					}
@@ -182,7 +182,7 @@ function generateLinkReport() {
 						    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
 							let start = link.lineText.text.indexOf(link.address);
 							let end = start + link.address.length;
-							diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Local file ${link.address} does not exist.`, DiagnosticSeverity.Error);
+							diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Local file  ${link.address}  does not exist.`, DiagnosticSeverity.Error);
 							diagnosticsArray.push(diag);
 							diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
                         }
@@ -217,17 +217,62 @@ function getLinks(document: TextDocument): Promise<Link[]> {
             // Get the text for the current line
             let lineText = document.lineAt(lineNumber);
             // Are there links?
-			// HTML link looks like: <a href="urlhere">
-            let links = lineText.text.match(/<a\s+href="[^"]*"/g);
+			// Anchor-href link looks like: <a href="urlhere" ... >
+            var links = lineText.text.match(/<a\s+href="[^"]*"/g);
             if (links) {
                 // Iterate over the links found on this line
-                for(let i = 0; i< links.length; i++) {
+                for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
                     var link = links[i].match(/<a\s+href="([^"]*)"/);
                     let address = link[1];
-					//var regex = /<a\s+href="([^"]*)"/i;
-					//var match = regex.exec(links[i]);
-					//var address = match[0];
+                    //Push it to the array
+                    linksToReturn.push({
+                        text: link[0],
+                        address: address,
+                        lineText: lineText
+                    });
+                }
+            }
+			// Img-src link looks like: <img src="urlhere" ... >
+            links = lineText.text.match(/<img\s+src="[^"]*"/g);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/<img\s+src="([^"]*)"/);
+                    let address = link[1];
+                    //Push it to the array
+                    linksToReturn.push({
+                        text: link[0],
+                        address: address,
+                        lineText: lineText
+                    });
+                }
+            }
+			// Script-src link looks like: <script src="urlhere" ... >
+            links = lineText.text.match(/<script\s+src="[^"]*"/g);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/<script\s+src="([^"]*)"/);
+                    let address = link[1];
+                    //Push it to the array
+                    linksToReturn.push({
+                        text: link[0],
+                        address: address,
+                        lineText: lineText
+                    });
+                }
+            }
+			// Link-href link looks like: <link href="urlhere" ... >
+            links = lineText.text.match(/<link\s+href="[^"]*"/g);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/<link\s+href="([^"]*)"/);
+                    let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
                         text: link[0],

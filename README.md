@@ -4,13 +4,13 @@ THIS PROJECT HASN'T BEEN TESTED MUCH YET !!!
 
 ##Functionality
 
-Check for broken links in anchor-href tags in HTML documents. It checks broken links by trying to resolve HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exist on the local file system.
+Check for broken links in anchor-href, link-href, img-src, and script-src tags in HTML documents. It checks broken links by trying to resolve HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exist on the local file system.
 
 Also checks for badly-formatted mailto links.
 
 Limitations:
-* "href" has to be first attribute in anchor-href tag.
-* Key parts of anchor-href tag (a and href) must be all on one line.
+* "href" or "src" has to be first attribute in the tag.
+* Tag and first attribute must be on the same line.
 * Doesn't check local "#name" links.
 * Written to match the behavior of HtmlHint, not browsers.  HtmlHint objects to uppercase in tag and attribute names, doesn't allow single-quotes instead of double-quotes.
 
@@ -34,20 +34,19 @@ To check for broken links, open an HTML file and then press `Alt-L`.  Broken lin
 ##TODO
 
 * Status indication remains when it's done checking.
+* Get rid of: "href" or "src" has to be first attribute in the tag.
+* Allow extension options ?  Redirect handling, info about non-handled schemes.
 * Test outside debug environment.
 * Warn about redirects.
-* Allow extension options ?  Redirect handling, info about non-handled schemes.
 * Remove need for local copy of node_modules tree ?
-* Test Img-src, Script-src and Link-href tags too.
 * Memory leaks ?
-* Deactivate().
 * Remove hard-coded paths.
 * Allow anyone to file Issues.
 * Register extension in Marketplace.
 
 ##QUIRKS
 
-* Multiple identical link-targets on same line, clicking on diagnostic for any takes you to first link-target in source line.
+* If there are multiple identical tags with identical link-targets on same line (for example two Anchor tags with identical href targets), clicking on diagnostic for any of them takes you to first link-target in the source line.
 
 ##Development
 
