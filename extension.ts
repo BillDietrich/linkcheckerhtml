@@ -19,12 +19,14 @@ import {
 	StatusBarAlignment,
 	WorkspaceConfiguration
 	} from 'vscode';
+
 // replacement for Promise which was removed from Node.js circa 2016
 //var promise = require('pinkie-promise');
 //import rsvp = require('rsvp');
 // At this point, I'm totally confused about where we're getting
-// the Promises implementation from.  Maybe it's coming from pinkie-promise
+// the Promise implementation from.  Maybe it's coming from pinkie-promise
 // because broken-link depends on pinkie-promise ?
+
 import fs = require('fs');
 // For checking relative URIs against the local file system
 import path = require('path');
@@ -111,6 +113,8 @@ function generateLinkReport() {
 		var diag = null;
 		diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
 
+		let myPromises = new Array<Promise<Link[]>>();
+
 /*
 		diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "messageHHHH", DiagnosticSeverity.Error);
 		diagnosticsArray.push(diag);
@@ -137,6 +141,7 @@ function generateLinkReport() {
                 // And check if they are broken or not.
                 let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
                 let p2 = brokenLink(link.address, {allowRedirects: !bReportRedirectAsError});
+				myPromises.push(p2);
 				p2.then((answer) =>
 				{
 					// callback function for the "success" branch of the p2 Promise
@@ -148,7 +153,7 @@ function generateLinkReport() {
 						let start = link.lineText.text.indexOf(link.address);
 						let end = start + link.address.length;
 						//diag = new Diagnostic(new Range(new Position(15,10),new Position(5,20)), "messageZZZZZZZZ", DiagnosticSeverity.Error);
-						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is unreachable`+(bReportRedirectAsError?` or redirects.`:`.`), DiagnosticSeverity.Error);
+						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirectAsError?` or redirects.`:`.`), DiagnosticSeverity.Error);
 						diagnosticsArray.push(diag);
 						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
                     } else {
@@ -208,15 +213,17 @@ function generateLinkReport() {
                 }
             }
         });
-		// really want to do this when all Promises are finished,
-		// but there seems to be no way to do that
-		//myStatusBarItem.text = `zzzzzzzzzzzzzzzzzzz`;
-		//myStatusBarItem.show();
+		
+        let p3 = Promise.all(myPromises);
+		p3.then((answer) =>
+		{
+			// all Promises are done, we've checked all the links
+			myStatusBarItem.text = ``;
+			myStatusBarItem.show();
+		}
+		);
     }
 	);
-	//myStatusBarItem.text = `zzzzzzzzzzzzzzzzzzz`;
-	//myStatusBarItem.show();
-	//myStatusBarItem.hide();	// want to do this when all Promises are finished
 
     //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: returning`);
 }

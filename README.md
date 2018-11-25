@@ -50,7 +50,6 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 
 ### To-Do list
 * Test on many real web pages.
-* Status indication remains when it's done checking.
 * Report more info from broken-link, such as HTTP return code.
 * Get rid of: "href" or "src" has to be first attribute in the tag.
 * Multi-line tag silently ignored.
