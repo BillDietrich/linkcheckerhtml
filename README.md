@@ -1,21 +1,20 @@
-#HTML link checker
+# HTML link checker
 
+VSCode extension that checks for broken links in HTML files.
 
 THIS PROJECT ISN'T RELEASED YET !!!
 
-
-##Functionality
-
+## Functionality
 Check for broken links in anchor-href, link-href, img-src, and script-src tags in HTML documents. It checks broken links by trying to resolve HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exist on the local file system.
 
 Also checks for badly-formatted mailto links.
 
-Settings:
+### Settings
 * linkcheckerhtml.checkMailtoDestFormat: Check format of email addresses in mailto links.
 * linkcheckerhtml.reportNonHandledSchemes: Report (as Information) links with URI schemes not checked by the checker, such as FTP and Telnet.
 * linkcheckerhtml.reportRedirectAsError: Report (as Error) links that get redirected.
 
-Limitations:
+### Limitations
 * "href" or "src" has to be first attribute in the tag.
 * Tag and first attribute must be on the same line.
 * Doesn't check local "#name" links.
@@ -24,35 +23,32 @@ Limitations:
 
 Note that checking for broken links is more of an art than a science. Some sites don't actually return 404, but send you to a landing page. For example, Azure.com works this way. You can go to https://Azure.com/foo/bar and it will happily redirect you to https://Azure.com, with no 404 status returned. So take a status of "OK" with a grain of salt - you may not be arriving at the page you intend.
 
+#### Quirks
+* If there are multiple identical tags with identical link-targets on same line (for example two Anchor tags with identical href targets), clicking on diagnostic for any of them takes you to first link-target in the source line.
+* Doesn't check ANY of the email address format after "?", as in "mailto:a@b.com?subject=xyz".
 
-##Install
 
+## Install
 Open Visual Studio Code and press `F1`; a field will appear at the top of the window. Type `ext install linkcheckerhtml`, hit enter, and reload the window to enable.
 
 
-##Check for broken links
-
+## Use
 To check for broken links, open an HTML file and then press `Alt-L`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.
 
 To see/change settings for the extension, open Settings / Extensions / HTML link checker
 
 
-##QUIRKS
 
-* If there are multiple identical tags with identical link-targets on same line (for example two Anchor tags with identical href targets), clicking on diagnostic for any of them takes you to first link-target in the source line.
-* Doesn't check ANY of the email address format after "?", as in "mailto:a@b.com?subject=xyz".
+## Releases
 
-
-##Changes
-
-###0.2.0
-
+### 0.2.0
 * Copied from "Microsoft / linkcheckermd" and then greatly modified.
 * Extension works, but probably has memory leaks, not much testing.
 
 
-##TODO
+## Development
 
+### To-Do list
 * Test on many real web pages.
 * Status indication remains when it's done checking.
 * Report more info from broken-link, such as HTTP return code.
@@ -66,8 +62,7 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 * Register extension in Marketplace.
 
 
-##Development
-
+### Development Environment
 I don't really know what I'm doing with much of this stuff, probably I'm doing some things stupidly.
 
 I used:
