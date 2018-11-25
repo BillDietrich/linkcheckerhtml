@@ -20,19 +20,12 @@ import {
 	WorkspaceConfiguration
 	} from 'vscode';
 
-// replacement for Promise which was removed from Node.js circa 2016
-//var promise = require('pinkie-promise');
-//import rsvp = require('rsvp');
-// At this point, I'm totally confused about where we're getting
-// the Promise implementation from.  Maybe it's coming from pinkie-promise
-// because broken-link depends on pinkie-promise ?
-
 import fs = require('fs');
 // For checking relative URIs against the local file system
 import path = require('path');
 // For checking broken links
-//import brokenLink = require('broken-link');
-import brokenLink = require('/usr/local/lib/node_modules/broken-link/index.js');
+import fetch = require('node-fetch');
+import AbortController from 'abort-controller';
 
 //Interface for links
 interface Link {
@@ -45,6 +38,12 @@ let myStatusBarItem: StatusBarItem;
 let diagnosticsCollection: DiagnosticCollection;
 let gConfiguration: WorkspaceConfiguration;
 
+
+const controller = new AbortController();
+const timeout = setTimeout(
+  () => { controller.abort(); },
+  10000,
+);
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -96,16 +95,18 @@ function generateLinkReport() {
     //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
     //document = window.visibleTextEditors[1].document;
 
-
 	myStatusBarItem.text = `Checking for broken links ...`;
 	myStatusBarItem.show();
 
-    // Get all HTML Anchor links in the document
+    // Get all links in the document
     let p1 = getLinks(document);
 	p1.then((links) => {
 		// callback function for the "success" branch of the p1 Promise
 		// Promise resolved now, so we're in a different context than before
 	    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: got ${links.length} links`);
+
+		myStatusBarItem.text = `Checking ${links.length} links ...`;
+		myStatusBarItem.show();
 
 		gConfiguration = workspace.getConfiguration('linkcheckerhtml');
 
@@ -139,23 +140,17 @@ function generateLinkReport() {
             // Is it an HTTP* link or a relative link?
             if (isHttpLink(link.address)) {
                 // And check if they are broken or not.
-                let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
-				// https://travis-ci.org/rafaelrinaldi/broken-link
-				// option values from /usr/local/lib/node_modules/broken-link/README.md
-                let p2 = brokenLink(link.address,
-								{
-								allowRedirects:!bReportRedirectAsError,	// does redirect count as succeed ?
-								allow404Pages:false,					// does 404 page count as succeed ?
-								allowSoft404:false						// https://en.wikipedia.org/wiki/HTTP_404#Soft_404_errors
-								//ignoreErrors:[],						// list of error codes that should be ignored
-								//ignoreStatusCodes:[],					// list of status codes that should be ignored
-								//match404Page:`/404|erro|page/i`		// pattern that checks if an URL is a 404 page
-								});
+                //let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
+                let bReportRedirectAsError = true;
+                //let p2 = fetch(link.address, { redirect: (bReportRedirectAsError ? `error` : `follow`), timeout: 5000 });
+                //let p2 = fetch(link.address, { redirect: `follow`, timeout: 5000 });
+                let p2 = fetch(link.address, { redirect: `follow`, signal: controller.signal });
 				myPromises.push(p2);
-				p2.then((answer) =>
+				p2.then((res) =>
 				{
-					// callback function for the "success" branch of the p2 Promise
-                    if (answer) {
+					// callback function for the "result" branch of the p2 Promise
+    				clearTimeout(timeout);
+                    if (!res.ok) {
 						gConfiguration = workspace.getConfiguration('linkcheckerhtml');
 		                let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
                         //outputChannel.appendLine(`Error: ${link.address} on line ${lineNumber} is unreachable.`);
@@ -163,14 +158,13 @@ function generateLinkReport() {
 						let start = link.lineText.text.indexOf(link.address);
 						let end = start + link.address.length;
 						//diag = new Diagnostic(new Range(new Position(15,10),new Position(5,20)), "messageZZZZZZZZ", DiagnosticSeverity.Error);
-						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirectAsError?` or redirects.`:`.`), DiagnosticSeverity.Error);
+						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirectAsError?` or redirects; `:`; `)+`${res.status} (${res.statusText})`, DiagnosticSeverity.Error);
 						diagnosticsArray.push(diag);
 						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
                     } else {
                         //outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is accessible.`);
                     }
-                }
-				);
+                });
             } else {
                 if (isNonHTTPLink(link.address)) {
 					gConfiguration = workspace.getConfiguration('linkcheckerhtml');

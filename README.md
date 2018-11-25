@@ -45,15 +45,15 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 * Copied from "Microsoft / linkcheckermd" and then greatly modified.
 * Extension works, but probably has memory leaks, not much testing.
 
+### 0.3.0
+* Changed to use node-fetch module (https://github.com/bitinn/node-fetch) instead of broken-link.  But has bad hangs.
+
 
 ## Development
 
 ### To-Do list
 * Test on many real web pages.
-* Report more info from broken-link, such as HTTP return code.  CAN'T BE DONE !!!
-* Change to use node-fetch module (https://github.com/bitinn/node-fetch) instead of broken-link ?
 * Change to use uri-js module to parse URIs ?
-* Try uninstalling pinkie-promise, see what happens.
 * Find URL-click extension that makes human-checking easy.
 * Get rid of: "href" or "src" has to be first attribute in the tag.
 * Multi-line tag silently ignored.
@@ -64,6 +64,19 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 * Allow anyone to file Issues.
 * Register extension in Marketplace.
 
+### Things tried or considered
+
+#### Various modules for the network interface
+* broken-link module: worked but no info about why an URL failed.
+* node-fetch module: mysterious hangs, unrelated to number of links, timeouts/signals apparently don't work. https://github.com/bitinn/node-fetch
+* http module: too low-level. https://nodejs.org/api/http.html
+* got module: haven't tried yet.  https://github.com/sindresorhus/got
+* axios module: haven't tried yet.  https://github.com/axios/axios
+* request module: haven't tried yet.  https://www.npmjs.com/package/request https://stackabuse.com/the-node-js-request-module/
+
+#### Ways of parsing URIs
+* Hand-written code: worked.
+* uri-js module: haven't tried yet.  https://github.com/garycourt/uri-js
 
 ### Development Environment
 I don't really know what I'm doing with much of this stuff, probably I'm doing some things stupidly.
@@ -73,12 +86,11 @@ I used:
 * VSCode 1.29.1 (which says Node.js 8.9.3)
 * node 8.10.0
 * npm 3.5.2
-* sudo npm -g install --save pinkie-promise (used by broken-link)
-* sudo npm -g install --save broken-link
+* abort-controller
 * Yeoman
 
 I did:
 * Ran Yeoman to make a Typescript test extension, then copied the entire node_module directory tree from there to linkcheckerhtml directory.
 * Put path to node_module directory tree in vscode-typings.d.ts
-* Extension.ts has a hard-coded path
-to broken-link/index.js
+* sudo npm -g install --save node-fetch
+* sudo npm -g install --save abort-controller

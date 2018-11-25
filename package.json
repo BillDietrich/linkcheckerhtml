@@ -3,7 +3,7 @@
   "displayName": "HTML link checker",
   "description": "When you press Alt+L, checks for broken links.",
   "icon": "linkcheckerhtmlicon.png",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "BillDietrich",
   "galleryBanner": {
     "color": "#0000FF",
@@ -81,8 +81,9 @@
     "@types/mocha": "^2.2.42"
   },
   "dependencies": {
-    "broken-link": "^1.0.1",
-    "fs": "*",
-    "path": "*"
+    "node-fetch": "^2.0.0",
+	"abort-controller": "^1.0.2",
+    "fs": "^0.0.1",
+    "path": "^0.12.7"
   }
 }
