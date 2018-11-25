@@ -22,6 +22,9 @@ import {
 // replacement for Promise which was removed from Node.js circa 2016
 //var promise = require('pinkie-promise');
 //import rsvp = require('rsvp');
+// At this point, I'm totally confused about where we're getting
+// the Promises implementation from.  Maybe it's coming from pinkie-promise
+// because broken-link depends on pinkie-promise ?
 import fs = require('fs');
 // For checking relative URIs against the local file system
 import path = require('path');
@@ -43,7 +46,7 @@ let gConfiguration: WorkspaceConfiguration;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate({ subscriptions }: ExtensionContext) {     
+export function activate(extensionContext:ExtensionContext) {     
     //let outputChannel = window.createOutputChannel("linkcheckerhtml");
     // Show the output channel
     //outputChannel.show(false);	// preserveFocus == false
@@ -62,7 +65,7 @@ export function activate({ subscriptions }: ExtensionContext) {
     commands.registerCommand('extension.generateLinkReport', generateLinkReport);
 
 	myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 0);
-	subscriptions.push(myStatusBarItem);
+	extensionContext.subscriptions.push(myStatusBarItem);
 	myStatusBarItem.hide();
 
 	diagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
@@ -72,7 +75,8 @@ export function activate({ subscriptions }: ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {
-	myStatusBarItem.dispose();
+	// delete any OS resources you allocated that are not
+	// included in extensionContext.subscriptions
 }
 
 // Generate a report of broken links and the line they occur on
@@ -89,6 +93,7 @@ function generateLinkReport() {
     //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: uri = ${document.uri.toString()}`);
     //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
     //document = window.visibleTextEditors[1].document;
+
 
 	myStatusBarItem.text = `Checking for broken links ...`;
 	myStatusBarItem.show();
@@ -135,7 +140,6 @@ function generateLinkReport() {
 				p2.then((answer) =>
 				{
 					// callback function for the "success" branch of the p2 Promise
-                    // Log to the outputChannel
                     if (answer) {
 						gConfiguration = workspace.getConfiguration('linkcheckerhtml');
 		                let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
@@ -204,6 +208,10 @@ function generateLinkReport() {
                 }
             }
         });
+		// really want to do this when all Promises are finished,
+		// but there seems to be no way to do that
+		//myStatusBarItem.text = `zzzzzzzzzzzzzzzzzzz`;
+		//myStatusBarItem.show();
     }
 	);
 	//myStatusBarItem.text = `zzzzzzzzzzzzzzzzzzz`;
@@ -357,7 +365,7 @@ function isWellFormedMailtoLink(UriToCheck: string): boolean {
     return bRetVal;
 }
 
-
+/*
 // Generate a diagnostic object
 function OldcreateDiagnostic(severity: DiagnosticSeverity, httpLink, lineText: TextLine, message): Diagnostic {
     // Get the location of the text in the document
@@ -372,3 +380,4 @@ function OldcreateDiagnostic(severity: DiagnosticSeverity, httpLink, lineText: T
     // Return the diagnostic
     return diag;
 }
+*/
