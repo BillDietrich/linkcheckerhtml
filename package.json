@@ -1,8 +1,8 @@
 {
   "name": "linkcheckerhtml",
   "displayName": "HTML link checker",
-  "description": "When you press Alt+L, checks for broken links in HTML.",
-  "icon": "images/linkcheckerhtmlicon.jpeg",
+  "description": "When you press Alt+L, checks for broken links.",
+  "icon": "linkcheckerhtmlicon.jpeg",
   "version": "0.2.0",
   "publisher": "BillDietrich",
   "galleryBanner": {
@@ -55,6 +55,11 @@
         "type": "object",
         "title": "HTML link checker",
         "properties": {
+			"linkcheckerhtml.checkMailtoDestFormat": {
+                "type": "boolean",
+                "default": true,
+                "description": "Check format of email addresses in mailto links."
+            },
             "linkcheckerhtml.reportNonHandledSchemes": {
                 "type": "boolean",
                 "default": true,
@@ -64,16 +69,6 @@
                 "type": "boolean",
                 "default": true,
                 "description": "Report (as Error) links that get redirected."
-            },
-			"linkcheckerhtml.checkMailtoDestFormat": {
-                "type": "boolean",
-                "default": true,
-                "description": "Check format of email addresses in mailto links."
-            },
-            "linkcheckerhtml.placeholderforlater": {
-                "type": ["string", "null"],
-                "default": null,
-                "description": "Specifies the folder path"
             }
         }
 		}

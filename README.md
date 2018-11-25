@@ -1,5 +1,5 @@
-		HTML link checker
-		-----------------
+#HTML link checker
+
 
 THIS PROJECT ISN'T RELEASED YET !!!
 
@@ -10,6 +10,11 @@ Check for broken links in anchor-href, link-href, img-src, and script-src tags i
 
 Also checks for badly-formatted mailto links.
 
+Settings:
+* linkcheckerhtml.checkMailtoDestFormat: Check format of email addresses in mailto links.
+* linkcheckerhtml.reportNonHandledSchemes: Report (as Information) links with URI schemes not checked by the checker, such as FTP and Telnet.
+* linkcheckerhtml.reportRedirectAsError: Report (as Error) links that get redirected.
+
 Limitations:
 * "href" or "src" has to be first attribute in the tag.
 * Tag and first attribute must be on the same line.
@@ -19,13 +24,24 @@ Limitations:
 
 Note that checking for broken links is more of an art than a science. Some sites don't actually return 404, but send you to a landing page. For example, Azure.com works this way. You can go to https://Azure.com/foo/bar and it will happily redirect you to https://Azure.com, with no 404 status returned. So take a status of "OK" with a grain of salt - you may not be arriving at the page you intend.
 
+
 ##Install
 
 Open Visual Studio Code and press `F1`; a field will appear at the top of the window. Type `ext install linkcheckerhtml`, hit enter, and reload the window to enable.
 
+
 ##Check for broken links
 
 To check for broken links, open an HTML file and then press `Alt-L`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.
+
+To see/change settings for the extension, open Settings / Extensions / HTML link checker
+
+
+##QUIRKS
+
+* If there are multiple identical tags with identical link-targets on same line (for example two Anchor tags with identical href targets), clicking on diagnostic for any of them takes you to first link-target in the source line.
+* Doesn't check ANY of the email address format after "?", as in "mailto:a@b.com?subject=xyz".
+
 
 ##Changes
 
@@ -34,22 +50,21 @@ To check for broken links, open an HTML file and then press `Alt-L`.  Broken lin
 * Copied from "Microsoft / linkcheckermd" and then greatly modified.
 * Extension works, but probably has memory leaks, not much testing.
 
+
 ##TODO
 
 * Test on many real web pages.
 * Status indication remains when it's done checking.
+* Report more info from broken-link, such as HTTP return code.
 * Get rid of: "href" or "src" has to be first attribute in the tag.
+* Multi-line tag silently ignored.
 * Test outside debug environment.
-* Warn about redirects; implement redirect configuration setting.
 * Remove need for local copy of node_modules tree ?
 * Memory leaks ?
 * Remove hard-coded paths.
 * Allow anyone to file Issues.
 * Register extension in Marketplace.
 
-##QUIRKS
-
-* If there are multiple identical tags with identical link-targets on same line (for example two Anchor tags with identical href targets), clicking on diagnostic for any of them takes you to first link-target in the source line.
 
 ##Development
 

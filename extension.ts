@@ -126,18 +126,20 @@ function generateLinkReport() {
             // Is it an HTTP* link or a relative link?
             if (isHttpLink(link.address)) {
                 // And check if they are broken or not.
-                let p2 = brokenLink(link.address, {allowRedirects: true});
+                let bReportRedirectAsError = workspace.getConfiguration('linkcheckerhtml').reportRedirectAsError;
+                let p2 = brokenLink(link.address, {allowRedirects: !bReportRedirectAsError});
 				p2.then((answer) =>
 				{
 					// callback function for the "success" branch of the p2 Promise
                     // Log to the outputChannel
                     if (answer) {
+		                let bReportRedirectAsError = workspace.getConfiguration('linkcheckerhtml').reportRedirectAsError;
                         //outputChannel.appendLine(`Error: ${link.address} on line ${lineNumber} is unreachable.`);
 					    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
 						let start = link.lineText.text.indexOf(link.address);
 						let end = start + link.address.length;
 						//diag = new Diagnostic(new Range(new Position(15,10),new Position(5,20)), "messageZZZZZZZZ", DiagnosticSeverity.Error);
-						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is unreachable.`, DiagnosticSeverity.Error);
+						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is unreachable`+(bReportRedirectAsError?` or redirects.`:`.`), DiagnosticSeverity.Error);
 						diagnosticsArray.push(diag);
 						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
                     } else {
