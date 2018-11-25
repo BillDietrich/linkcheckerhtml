@@ -140,7 +140,17 @@ function generateLinkReport() {
             if (isHttpLink(link.address)) {
                 // And check if they are broken or not.
                 let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
-                let p2 = brokenLink(link.address, {allowRedirects: !bReportRedirectAsError});
+				// https://travis-ci.org/rafaelrinaldi/broken-link
+				// option values from /usr/local/lib/node_modules/broken-link/README.md
+                let p2 = brokenLink(link.address,
+								{
+								allowRedirects:!bReportRedirectAsError,	// does redirect count as succeed ?
+								allow404Pages:false,					// does 404 page count as succeed ?
+								allowSoft404:false						// https://en.wikipedia.org/wiki/HTTP_404#Soft_404_errors
+								//ignoreErrors:[],						// list of error codes that should be ignored
+								//ignoreStatusCodes:[],					// list of status codes that should be ignored
+								//match404Page:`/404|erro|page/i`		// pattern that checks if an URL is a 404 page
+								});
 				myPromises.push(p2);
 				p2.then((answer) =>
 				{

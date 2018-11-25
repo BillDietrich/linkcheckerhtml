@@ -50,7 +50,11 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 
 ### To-Do list
 * Test on many real web pages.
-* Report more info from broken-link, such as HTTP return code.
+* Report more info from broken-link, such as HTTP return code.  CAN'T BE DONE !!!
+* Change to use node-fetch module (https://github.com/bitinn/node-fetch) instead of broken-link ?
+* Change to use uri-js module to parse URIs ?
+* Try uninstalling pinkie-promise, see what happens.
+* Find URL-click extension that makes human-checking easy.
 * Get rid of: "href" or "src" has to be first attribute in the tag.
 * Multi-line tag silently ignored.
 * Test outside debug environment.
