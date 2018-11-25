@@ -16,7 +16,8 @@ import {
     TextDocument,
     TextLine,
     StatusBarItem,
-	StatusBarAlignment
+	StatusBarAlignment,
+	WorkspaceConfiguration
 	} from 'vscode';
 // replacement for Promise which was removed from Node.js circa 2016
 //var promise = require('pinkie-promise');
@@ -37,6 +38,7 @@ interface Link {
 
 let myStatusBarItem: StatusBarItem;
 let diagnosticsCollection: DiagnosticCollection;
+let gConfiguration: WorkspaceConfiguration;
 
 
 // this method is called when your extension is activated
@@ -98,6 +100,8 @@ function generateLinkReport() {
 		// Promise resolved now, so we're in a different context than before
 	    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: got ${links.length} links`);
 
+		gConfiguration = workspace.getConfiguration('linkcheckerhtml');
+
 		var diagnosticsArray = new Array<Diagnostic>();
 		var diag = null;
 		diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
@@ -126,14 +130,15 @@ function generateLinkReport() {
             // Is it an HTTP* link or a relative link?
             if (isHttpLink(link.address)) {
                 // And check if they are broken or not.
-                let bReportRedirectAsError = workspace.getConfiguration('linkcheckerhtml').reportRedirectAsError;
+                let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
                 let p2 = brokenLink(link.address, {allowRedirects: !bReportRedirectAsError});
 				p2.then((answer) =>
 				{
 					// callback function for the "success" branch of the p2 Promise
                     // Log to the outputChannel
                     if (answer) {
-		                let bReportRedirectAsError = workspace.getConfiguration('linkcheckerhtml').reportRedirectAsError;
+						gConfiguration = workspace.getConfiguration('linkcheckerhtml');
+		                let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
                         //outputChannel.appendLine(`Error: ${link.address} on line ${lineNumber} is unreachable.`);
 					    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
 						let start = link.lineText.text.indexOf(link.address);
@@ -149,7 +154,8 @@ function generateLinkReport() {
 				);
             } else {
                 if (isNonHTTPLink(link.address)) {
-                    let bCheckMailtoDestFormat = workspace.getConfiguration('linkcheckerhtml').checkMailtoDestFormat;
+					gConfiguration = workspace.getConfiguration('linkcheckerhtml');
+                    let bCheckMailtoDestFormat = gConfiguration.checkMailtoDestFormat;
 					if (bCheckMailtoDestFormat && isMailtoLink(link.address)) {
 						if (!isWellFormedMailtoLink(link.address)) {
 							diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
@@ -160,7 +166,7 @@ function generateLinkReport() {
 							diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
 						}
 					} else {
-	                    let bReportNonHandledSchemes = workspace.getConfiguration('linkcheckerhtml').reportNonHandledSchemes;
+	                    let bReportNonHandledSchemes = gConfiguration.reportNonHandledSchemes;
 						if (bReportNonHandledSchemes) {
                     		//outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
 							diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
