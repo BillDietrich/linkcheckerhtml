@@ -17,6 +17,7 @@ Also checks for badly-formatted mailto links.
 ### Limitations
 * "href" or "src" has to be first attribute in the tag.
 * Tag and first attribute must be on the same line.
+* Doesn't know about comments; will find and check tags inside comments.
 * Doesn't check local "#name" links.
 * Written to match the behavior of HtmlHint, not browsers.  HtmlHint objects to uppercase in tag and attribute names, doesn't allow single-quotes instead of double-quotes.
 * Doesn't check EVERY detail of the email address spec in mailto links.  Just a cursory check.
@@ -48,6 +49,7 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 ### 0.3.0
 * Changed to use node-fetch module (https://github.com/bitinn/node-fetch) instead of broken-link.  But has bad hangs.
 * Changed to use got module (https://github.com/sindresorhus/got) instead of node-fetch.  But has bad hangs.
+* Changed to use axios module (https://github.com/axios/axios) instead of node-fetch.  Works, but rejects a lot of URLs.
 
 
 ## Development
@@ -73,10 +75,11 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 * node-fetch module: mysterious hangs, unrelated to number of links, timeouts/signals apparently don't work, redirect option seemed backwards.  https://github.com/bitinn/node-fetch
 * http module: too low-level.  https://nodejs.org/api/http.html
 * got module: threw rejects in various ways when creating Promises for some URLS, couldn't figure out why or how to resolve the Promises so we didn't hang.  https://github.com/sindresorhus/got
-* axios module: haven't tried yet.  https://github.com/axios/axios
+* axios module: works, but throws rejects for over 40 or so links, but they don't cause hangs.  https://github.com/axios/axios
 * request module: haven't tried yet.  https://www.npmjs.com/package/request https://stackabuse.com/the-node-js-request-module/
 Relevant: https://www.tomas-dvorak.cz/posts/nodejs-request-without-dependencies/
 Relevant: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+Relevant: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
 
 #### Ways of parsing URIs
 * Hand-written code: worked.
@@ -90,10 +93,10 @@ I used:
 * VSCode 1.29.1 (which says Node.js 8.9.3)
 * node 8.10.0
 * npm 3.5.2
-* abort-controller
+* axios
 * Yeoman
 
 I did:
 * Ran Yeoman to make a Typescript test extension, then copied the entire node_module directory tree from there to linkcheckerhtml directory.
 * Put path to node_module directory tree in vscode-typings.d.ts
-* sudo npm -g install --save got then copy to project node_modules
+* "sudo npm -g install --save axios" then copy /usr/local/lib/node_modules/axios to project node_modules

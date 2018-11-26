@@ -24,8 +24,10 @@ import fs = require('fs');
 // For checking relative URIs against the local file system
 import path = require('path');
 // For checking broken links
-import got = require('got');
-//import got = require('responselike');
+import {
+	AxiosPromise
+	} from 'axios';
+const axios = require('axios');
 
 //Interface for links
 interface Link {
@@ -82,9 +84,9 @@ function generateLinkReport() {
     var document = window.activeTextEditor.document;
 
     // Create an output channel for displaying broken links
-    var outputChannel = window.createOutputChannel("linkcheckerhtml2");
+    //var outputChannel = window.createOutputChannel("linkcheckerhtml2");
     // Show the output channel
-    outputChannel.show(true);	// preserveFocus
+    //outputChannel.show(true);	// preserveFocus
     //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: called`);
     //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: uri = ${document.uri.toString()}`);
     //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
@@ -109,7 +111,7 @@ function generateLinkReport() {
 		var diag = null;
 		diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
 
-		let myPromises = new Array<Promise<Link[]>>();
+		let myPromises = new Array<AxiosPromise<Link[]>>();
 
 /*
 		diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "messageHHHH", DiagnosticSeverity.Error);
@@ -135,57 +137,50 @@ function generateLinkReport() {
             // Is it an HTTP* link or a relative link?
             if (isHttpLink(link.address)) {
                 // And check if they are broken or not.
-				var BaseURLs = link.address.match(/[a-z]+:\/\/[^\/]+\/*/ig);
-		    	outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: link.address '${link.address}', BaseURLs[0] '${BaseURLs[0]}'`);
-				var sRestOfURL = link.address.substr(BaseURLs[0].length);
-		    	outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: link.address '${link.address}', BaseURLs[0] '${BaseURLs[0]}', sRestOfURL '${sRestOfURL}'`);
-
                 let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
-				// hangs on https://www.billdietrich.me/nosuchpage.html no matter what I do
-		    	outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: bReportRedirectAsError ${bReportRedirectAsError}`);
-                //let p2 = got(link.address, { redirect: (bReportRedirectAsError ? `error` : `follow`), timeout: 5000 });
-                //let p2 = got(link.address, { redirect: `follow`, timeout: 5000 });
-                let p2 = got(sRestOfURL, { baseUrl: BaseURLs[0], followRedirect: !bReportRedirectAsError, retry: 0, timeout: 50000 });
+		    	//outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: bReportRedirectAsError ${bReportRedirectAsError}`);
+                //let p2 = axios.get(link.address, { redirect: (bReportRedirectAsError ? `error` : `follow`), timeout: 5000 });
+                //let p2 = axios.get(link.address, { redirect: `follow`, timeout: 5000 });
+                let p2 = axios.get(link.address, { validateStatus: null, maxRedirects: (bReportRedirectAsError ? 0 : 1), timeout: 8000 });
 				myPromises.push(p2);
 				p2.then(
 					(response) =>
 				{
 					// callback function for the "result" branch of the p2 Promise
-		    		outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: got response to p2 promise for ${response.requestUrl}: ${response.statusCode} (${response.statusMessage})`);
-                    if ((response.statusCode > 400) && (response.statusCode < 600)) {
-						gConfiguration = workspace.getConfiguration('linkcheckerhtml');
-		                let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
-                        //outputChannel.appendLine(`Error: ${link.address} on line ${lineNumber} is unreachable.`);
+		    		//outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: got response to p2 promise for ${response.requestUrl}: ${response.status} (${response.statusText})`);
+					gConfiguration = workspace.getConfiguration('linkcheckerhtml');
+		            let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
+                    if (((response.status > 400) && (response.status < 600))
+							|| (bReportRedirectAsError && ((response.status > 300) && (response.status < 400)))) {
+                        //outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is unreachable.`);
 					    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
 						let start = link.lineText.text.indexOf(link.address);
 						let end = start + link.address.length;
-						//diag = new Diagnostic(new Range(new Position(15,10),new Position(5,20)), "messageZZZZZZZZ", DiagnosticSeverity.Error);
-						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirectAsError?` or redirects; `:`; `)+`${response.statusCode} (${response.statusMessage})`, DiagnosticSeverity.Error);
+						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirectAsError?` or redirects; `:`; `)+`${response.status} (${response.statusText})`, DiagnosticSeverity.Error);
 						diagnosticsArray.push(diag);
 						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
                     } else {
-                        outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is accessible.`);
+                        //outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is accessible.`);
                     }
-                },
-				(reject) =>
-				{
-                        outputChannel.appendLine(`Info: ${link.address} reject, myPromises.length ${myPromises.length}`);
-						return Promise.resolve();
-				},
-				(error) =>
-				{
-                        outputChannel.appendLine(`Info: ${link.address} error, myPromises.length ${myPromises.length}`);
-				}
-				).catch(
+				}).catch(
 				(all) =>
-				{
-                        outputChannel.appendLine(`Info: ${link.address} catch-all, myPromises.length ${myPromises.length}`);
-						return Promise.resolve();
-				},
-				(error) =>
-				{
-                        outputChannel.appendLine(`Info: ${link.address} catch-error, myPromises.length ${myPromises.length}`);
-				});
+					{
+                        //outputChannel.appendLine(`Info: ${link.address} catch-all`);
+						// axios created a Promise but rejected starting it, somehow.
+						// We're going to end up with Promises that never resolve,
+						// there seems to be no way to resolve them from this position.
+						// warn that we didn't check this link
+					    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
+						let start = link.lineText.text.indexOf(link.address);
+						let end = start + link.address.length;
+						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Internal error, sorry: ${link.address} was not checked`, DiagnosticSeverity.Warning);
+						diagnosticsArray.push(diag);
+						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
+						// Make it look like the extension is not hanging.
+						myStatusBarItem.text = ``;
+						myStatusBarItem.show();
+					}
+				);
             } else {
                 if (isNonHTTPLink(link.address)) {
 					gConfiguration = workspace.getConfiguration('linkcheckerhtml');
