@@ -2,7 +2,7 @@
 
 VSCode extension that checks for broken links in HTML files.
 
-THIS PROJECT ISN'T RELEASED YET !!!
+THIS PROJECT ISN'T WORKING YET !!!
 
 ## Functionality
 Check for broken links in anchor-href, link-href, img-src, and script-src tags in HTML documents. It checks broken links by trying to resolve HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exist on the local file system.
@@ -47,6 +47,7 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 
 ### 0.3.0
 * Changed to use node-fetch module (https://github.com/bitinn/node-fetch) instead of broken-link.  But has bad hangs.
+* Changed to use got module (https://github.com/sindresorhus/got) instead of node-fetch.  But has bad hangs.
 
 
 ## Development
@@ -54,6 +55,7 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 ### To-Do list
 * Test on many real web pages.
 * Change to use uri-js module to parse URIs ?
+* Change settings to use pull-downs: error, warn, info, success
 * Find URL-click extension that makes human-checking easy.
 * Get rid of: "href" or "src" has to be first attribute in the tag.
 * Multi-line tag silently ignored.
@@ -67,12 +69,14 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 ### Things tried or considered
 
 #### Various modules for the network interface
-* broken-link module: worked but no info about why an URL failed.
-* node-fetch module: mysterious hangs, unrelated to number of links, timeouts/signals apparently don't work. https://github.com/bitinn/node-fetch
-* http module: too low-level. https://nodejs.org/api/http.html
-* got module: haven't tried yet.  https://github.com/sindresorhus/got
+* broken-link module: worked but no info about why an URL failed.  https://github.com/rafaelrinaldi/broken-link
+* node-fetch module: mysterious hangs, unrelated to number of links, timeouts/signals apparently don't work, redirect option seemed backwards.  https://github.com/bitinn/node-fetch
+* http module: too low-level.  https://nodejs.org/api/http.html
+* got module: threw rejects in various ways when creating Promises for some URLS, couldn't figure out why or how to resolve the Promises so we didn't hang.  https://github.com/sindresorhus/got
 * axios module: haven't tried yet.  https://github.com/axios/axios
 * request module: haven't tried yet.  https://www.npmjs.com/package/request https://stackabuse.com/the-node-js-request-module/
+Relevant: https://www.tomas-dvorak.cz/posts/nodejs-request-without-dependencies/
+Relevant: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
 #### Ways of parsing URIs
 * Hand-written code: worked.
@@ -92,5 +96,4 @@ I used:
 I did:
 * Ran Yeoman to make a Typescript test extension, then copied the entire node_module directory tree from there to linkcheckerhtml directory.
 * Put path to node_module directory tree in vscode-typings.d.ts
-* sudo npm -g install --save node-fetch
-* sudo npm -g install --save abort-controller
+* sudo npm -g install --save got then copy to project node_modules
