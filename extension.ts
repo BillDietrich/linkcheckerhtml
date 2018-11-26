@@ -139,9 +139,10 @@ function generateLinkReport() {
                 // And check if they are broken or not.
                 let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
 		    	//outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: bReportRedirectAsError ${bReportRedirectAsError}`);
-                //let p2 = axios.get(link.address, { redirect: (bReportRedirectAsError ? `error` : `follow`), timeout: 5000 });
-                //let p2 = axios.get(link.address, { redirect: `follow`, timeout: 5000 });
-                let p2 = axios.get(link.address, { validateStatus: null, maxRedirects: (bReportRedirectAsError ? 0 : 1), timeout: 8000 });
+                // timeout seems to apply from time the Promise is created, so for documents
+				// with lots of links, we need a large timeout value
+				let nTimeout = (5 + (links.length/5)) * 1000;
+                let p2 = axios.get(link.address, { validateStatus: null, maxRedirects: (bReportRedirectAsError ? 0 : 1), timeout: nTimeout });
 				myPromises.push(p2);
 				p2.then(
 					(response) =>
@@ -163,9 +164,9 @@ function generateLinkReport() {
                         //outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is accessible.`);
                     }
 				}).catch(
-				(all) =>
+				(error) =>
 					{
-                        //outputChannel.appendLine(`Info: ${link.address} catch-all`);
+                        //outputChannel.appendLine(`Info: ${link.address} catch-all, error: ${error}`);
 						// axios created a Promise but rejected starting it, somehow.
 						// We're going to end up with Promises that never resolve,
 						// there seems to be no way to resolve them from this position.
