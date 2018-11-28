@@ -49,7 +49,8 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 ### 0.3.0
 * Changed to use node-fetch module (https://github.com/bitinn/node-fetch) instead of broken-link.  But has bad hangs.
 * Changed to use got module (https://github.com/sindresorhus/got) instead of node-fetch.  But has bad hangs.
-* Changed to use axios module (https://github.com/axios/axios) instead of node-fetch.  Works, but rejects a lot of URLs.
+* Changed to use axios module (https://github.com/axios/axios) instead of node-fetch.  Works, but hangs on some URLs.
+* Changed to throttle so that it checks max of 4 links in parallel.
 
 
 ## Development
@@ -75,7 +76,7 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 * node-fetch module: mysterious hangs, unrelated to number of links, timeouts/signals apparently don't work, redirect option seemed backwards.  https://github.com/bitinn/node-fetch
 * http module: too low-level.  https://nodejs.org/api/http.html
 * got module: threw rejects in various ways when creating Promises for some URLS, couldn't figure out why or how to resolve the Promises so we didn't hang.  https://github.com/sindresorhus/got
-* axios module: works, but throws rejects for over 40 or so links, but they don't cause hangs.  https://github.com/axios/axios
+* axios module: works, but throws rejects for over 40 or so links, but they don't cause hangs. Gets into catch for some links, and they DO cause hangs.  https://github.com/axios/axios https://stackoverflow.com/questions/tagged/axios
 * request module: haven't tried yet.  https://www.npmjs.com/package/request https://stackabuse.com/the-node-js-request-module/
 Relevant: https://www.tomas-dvorak.cz/posts/nodejs-request-without-dependencies/
 Relevant: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes

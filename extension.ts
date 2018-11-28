@@ -25,9 +25,14 @@ import fs = require('fs');
 import path = require('path');
 // For checking broken links
 import {
-	AxiosPromise
+	AxiosPromise,
+	AxiosResponse,
+	CancelToken
 	} from 'axios';
 const axios = require('axios');
+//import {
+//	ClientRequest
+//	} from 'http';
 
 //Interface for links
 interface Link {
@@ -37,28 +42,24 @@ interface Link {
 }
 
 let myStatusBarItem: StatusBarItem;
-let diagnosticsCollection: DiagnosticCollection;
+let gDiagnosticsCollection: DiagnosticCollection;
+let gDiagnosticsArray: Array<Diagnostic>;
 let gConfiguration: WorkspaceConfiguration;
-
+//var gOutputChannel = null;
+var gDocument = null;
+var gStartingNLinks = 0;
 
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(extensionContext:ExtensionContext) {     
-    //let outputChannel = window.createOutputChannel("linkcheckerhtml");
+    
+	//gOutputChannel = window.createOutputChannel("linkcheckerhtml");
     // Show the output channel
-    //outputChannel.show(false);	// preserveFocus == false
-    //outputChannel.appendLine(`linkcheckerhtml.activate: active`);
-	//outputChannel.appendLine(`linkcheckerhtml.activate: uri = ${window.activeTextEditor.document.uri.toString()}`);
-    //outputChannel.appendLine(`linkcheckerhtml.activate: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
-
-/*
-    var diagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
-	var diagnosticsArray = new Array<Diagnostic>();
-	var diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "message", DiagnosticSeverity.Error);
-	diagnosticsArray.push(diag);
-	diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
-*/
+    //gOutputChannel.show(false);	// preserveFocus == false
+    ////gOutputChannel.appendLine(`activate: active`);
+	////gOutputChannel.appendLine(`activate: uri = ${window.activeTextEditor.document.uri.toString()}`);
+    ////gOutputChannel.appendLine(`activate: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
 
     commands.registerCommand('extension.generateLinkReport', generateLinkReport);
 
@@ -66,9 +67,9 @@ export function activate(extensionContext:ExtensionContext) {
 	extensionContext.subscriptions.push(myStatusBarItem);
 	myStatusBarItem.hide();
 
-	diagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
+	gDiagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
 
-    //outputChannel.appendLine(`linkcheckerhtml.activate: finished`);
+    //gOutputChannel.appendLine(`activate: finished`);
 }
 
 // this method is called when your extension is deactivated
@@ -80,178 +81,256 @@ export function deactivate() {
 // Generate a report of broken links and the line they occur on
 function generateLinkReport() {
 
-    // Get the current document
-    var document = window.activeTextEditor.document;
+    //gOutputChannel.appendLine(`generateLinkReport: called`);
 
-    // Create an output channel for displaying broken links
-    //var outputChannel = window.createOutputChannel("linkcheckerhtml2");
-    // Show the output channel
-    //outputChannel.show(true);	// preserveFocus
-    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: called`);
-    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: uri = ${document.uri.toString()}`);
-    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
-    //document = window.visibleTextEditors[1].document;
+    // Get the current document
+    gDocument = window.activeTextEditor.document;
 
 	myStatusBarItem.text = `Checking for broken links ...`;
 	myStatusBarItem.show();
 
+	// should free old array ?
+	gDiagnosticsArray = new Array<Diagnostic>();
+	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+
+/*
+	var diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "message", DiagnosticSeverity.Error);
+	gDiagnosticsArray.push(diag);
+	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+*/
+
+	gConfiguration = workspace.getConfiguration('linkcheckerhtml');
+
     // Get all links in the document
-    let p1 = getLinks(document);
+    let p1 = getLinks(gDocument);
 	p1.then((links) => {
 		// callback function for the "success" branch of the p1 Promise
 		// Promise resolved now, so we're in a different context than before
-	    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: got ${links.length} links`);
+	    //gOutputChannel.appendLine(`generateLinkReport.p1.then: got ${links.length} links`);
 
-		myStatusBarItem.text = `Checking ${links.length} links ...`;
+		gStartingNLinks = links.length;
+		myStatusBarItem.text = `Checking ${gStartingNLinks} links ...`;
 		myStatusBarItem.show();
-
-		gConfiguration = workspace.getConfiguration('linkcheckerhtml');
-
-		var diagnosticsArray = new Array<Diagnostic>();
-		var diag = null;
-		diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
-
-		let myPromises = new Array<AxiosPromise<Link[]>>();
 
 /*
 		diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "messageHHHH", DiagnosticSeverity.Error);
-		diagnosticsArray.push(diag);
-		diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
-
-	    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
-		diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "messageIIII", DiagnosticSeverity.Error);
-		diagnosticsArray.push(diag);
-		diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
+		gDiagnosticsArray.push(diag);
+		gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 */
 
-/*
-		if (links.length == 0)
-			myStatusBarItem.hide();
-*/
-
-        // Loop over the links
-        links.forEach(link => {
-		    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: link on line ${link.lineText.lineNumber + 1} is "${link.address}"`);
-            var lineNumber = link.lineText.lineNumber;
-            
-            // Is it an HTTP* link or a relative link?
-            if (isHttpLink(link.address)) {
-                // And check if they are broken or not.
-                let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
-		    	//outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: bReportRedirectAsError ${bReportRedirectAsError}`);
-                // timeout seems to apply from time the Promise is created, so for documents
-				// with lots of links, we need a large timeout value
-				let nTimeout = (5 + (links.length/5)) * 1000;
-                let p2 = axios.get(link.address, { validateStatus: null, maxRedirects: (bReportRedirectAsError ? 0 : 1), timeout: nTimeout });
-				myPromises.push(p2);
-				p2.then(
-					(response) =>
-				{
-					// callback function for the "result" branch of the p2 Promise
-		    		//outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: got response to p2 promise for ${response.requestUrl}: ${response.status} (${response.statusText})`);
-					gConfiguration = workspace.getConfiguration('linkcheckerhtml');
-		            let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
-                    if (((response.status > 400) && (response.status < 600))
-							|| (bReportRedirectAsError && ((response.status > 300) && (response.status < 400)))) {
-                        //outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is unreachable.`);
-					    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
-						let start = link.lineText.text.indexOf(link.address);
-						let end = start + link.address.length;
-						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirectAsError?` or redirects; `:`; `)+`${response.status} (${response.statusText})`, DiagnosticSeverity.Error);
-						diagnosticsArray.push(diag);
-						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
-                    } else {
-                        //outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is accessible.`);
-                    }
-				}).catch(
-				(error) =>
-					{
-                        //outputChannel.appendLine(`Info: ${link.address} catch-all, error: ${error}`);
-						// axios created a Promise but rejected starting it, somehow.
-						// We're going to end up with Promises that never resolve,
-						// there seems to be no way to resolve them from this position.
-						// warn that we didn't check this link
-					    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
-						let start = link.lineText.text.indexOf(link.address);
-						let end = start + link.address.length;
-						diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Internal error, sorry: ${link.address} was not checked`, DiagnosticSeverity.Warning);
-						diagnosticsArray.push(diag);
-						diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
-						// Make it look like the extension is not hanging.
-						myStatusBarItem.text = ``;
-						myStatusBarItem.show();
-					}
-				);
-            } else {
-                if (isNonHTTPLink(link.address)) {
-					gConfiguration = workspace.getConfiguration('linkcheckerhtml');
-                    let bCheckMailtoDestFormat = gConfiguration.checkMailtoDestFormat;
-					if (bCheckMailtoDestFormat && isMailtoLink(link.address)) {
-						if (!isWellFormedMailtoLink(link.address)) {
-							diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
-							let start = link.lineText.text.indexOf(link.address);
-							let end = start + link.address.length;
-							diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is badly-formed.`, DiagnosticSeverity.Error);
-							diagnosticsArray.push(diag);
-							diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
-						}
-					} else {
-	                    let bReportNonHandledSchemes = gConfiguration.reportNonHandledSchemes;
-						if (bReportNonHandledSchemes) {
-                    		//outputChannel.appendLine(`Info: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
-							diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
-							let start = link.lineText.text.indexOf(link.address);
-							let end = start + link.address.length;
-							diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
-							diagnosticsArray.push(diag);
-							diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
-						}
-					}
-                } else {
-                    // Must be a relative path, but might not be, so try it...
-                    try {
-                        // Find the directory from the path to the current document
-                        var currentWorkingDirectory = path.dirname(document.fileName);
-                        // Use that to resolve the full path from the relative link address
-                        // The `.split('#')[0]` at the end is so that relative links that also reference an anchor in the document will work with file checking.
-                        var fullPath = path.resolve(currentWorkingDirectory, link.address).split('#')[0];
-                        // Check if the file exists and log appropriately
-                        if (fs.existsSync(fullPath)) {
-                            //outputChannel.appendLine(`Info: local file ${link.address} on line ${lineNumber} exists.`);
-                        } else {
-                            //outputChannel.appendLine(`Error: local file ${link.address} on line ${lineNumber} does not exist.`);
-						    diagnosticsArray = languages.getDiagnostics(window.activeTextEditor.document.uri);
-							let start = link.lineText.text.indexOf(link.address);
-							let end = start + link.address.length;
-							diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Local file  ${link.address}  does not exist.`, DiagnosticSeverity.Error);
-							diagnosticsArray.push(diag);
-							diagnosticsCollection.set(window.activeTextEditor.document.uri,diagnosticsArray);
-                        }
-                    } catch (error) {
-                        // If there's an error, log the link
-                        //outputChannel.appendLine(`Error: ${link.address} on line ${lineNumber} is not an HTTP/s or relative link.`);
-                    }
-                }
-            }
-        });
-		
-        let p3 = Promise.all(myPromises);
-		p3.then((answer) =>
-		{
-			// all Promises are done, we've checked all the links
+		let p2 = throttleActions(links, 4);
+		p2.then((links) => {
+		    //gOutputChannel.appendLine(`generateLinkReport.p2.then: called`);
 			myStatusBarItem.text = ``;
 			myStatusBarItem.show();
-		}
-		);
-    }
-	);
+		    //gOutputChannel.appendLine(`generateLinkReport.p2.then: all done`);
+		});
+	});
 
-    //outputChannel.appendLine(`linkcheckerhtml.generateLinkReport: returning`);
+    //gOutputChannel.appendLine(`generateLinkReport: returning`);
+}
+
+
+
+/**
+ * Performs a list of callable actions (promise factories) so that only a limited
+ * number of promises are pending at any given time.
+ *
+  * @returns A Promise that resolves to the full list of values when everything is done.
+ */
+function throttleActions(links, limit): Promise<any> {
+	//gOutputChannel.appendLine(`throttleActions: called, ${links.length} links, limit ${limit}`);
+
+	// We'll need to store which is the next promise in the list.
+	let i = 0;
+
+	// Now define what happens when any of the actions completes. Javascript is
+	// (mostly) single-threaded, so only one completion handler will call at a
+	// given time. Because we return doNextAction, the Promise chain continues as
+	// long as there's an action left in the list.
+	function doNextAction() {
+		//gOutputChannel.appendLine(`doNextAction: called, ${links.length-i} links left`);
+
+		myStatusBarItem.text = `Checking ${gStartingNLinks} links, ${links.length-i} more to do ...`;
+		myStatusBarItem.show();
+		
+		if (i < links.length) {
+			// Save the current value of i, so we can put the result in the right place
+			let linkIndex = i++;
+			//gOutputChannel.appendLine(`doNextAction: returning`);
+			return Promise.resolve(doALink(links[linkIndex]))
+				.then(result => {
+					return;
+				}).then(doNextAction);
+		}
+	}
+
+	// Now start up the original <limit> number of promises.
+	// i advances in calls to doNextAction.
+	let listOfPromises = [];
+	while (i < limit && i < links.length) {
+		listOfPromises.push(doNextAction());
+	}
+
+	//gOutputChannel.appendLine(`throttleActions: returning, listOfPromises.length ${listOfPromises.length}`);
+	return Promise.all(listOfPromises);
+}
+
+
+
+function doALink(link): Promise<null> {
+
+	//gOutputChannel.appendLine(`doALink: called, link.address ${link.address}`);
+
+	var diag = null;
+/*
+	diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "messageHHHH", DiagnosticSeverity.Error);
+	gDiagnosticsArray.push(diag);
+	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+*/
+
+	////gOutputChannel.appendLine(`doALink: link on line ${link.lineText.lineNumber + 1} is "${link.address}"`);
+	var lineNumber = link.lineText.lineNumber;
+
+	let myPromise = null;
+	
+	// Is it an HTTP* link or a relative link?
+	if (isHttpLink(link.address)) {
+		// And check if they are broken or not.
+		let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
+		//gOutputChannel.appendLine(`doALink: bReportRedirectAsError ${bReportRedirectAsError}`);
+		//const CancelToken = axios.CancelToken;
+		//const source = CancelToken.source();
+		myPromise = axios.get(link.address,
+								{
+								validateStatus: null,
+								//timeout: 500,
+								//cancelToken: source.token,
+								//maxRedirects: (bReportRedirectAsError ? 0 : 1)
+								maxRedirects: 99
+								});
+		myPromise.then(
+			(response) =>
+		{
+			// callback function for the "result" branch of the axios Promise
+			//gOutputChannel.appendLine(`doALink.axiosPromise.then: got response for ${response.request}: ${response.status} (${response.statusText})`);
+			let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
+			if (((response.status > 400) && (response.status < 600))
+					|| (bReportRedirectAsError && ((response.status > 300) && (response.status < 400)))) {
+				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} is unreachable.`);
+				let start = link.lineText.text.indexOf(link.address);
+				let end = start + link.address.length;
+				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirectAsError?` or redirects; `:`; `)+`${response.status} (${response.statusText})`, DiagnosticSeverity.Error);
+				gDiagnosticsArray.push(diag);
+				gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+			} else {
+				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} is accessible.`);
+			}
+		},
+			(error) =>
+		{
+			//gOutputChannel.appendLine(`doALink.axiosPromise.catch0: ${link.address} error: ${error} typeof error: ${typeof error}`);
+			let start = link.lineText.text.indexOf(link.address);
+			let end = start + link.address.length;
+			//diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Internal error, sorry: ${link.address} was not checked`, DiagnosticSeverity.Warning);
+			diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable and causing the extension to hang: ${error}`, DiagnosticSeverity.Error);
+			gDiagnosticsArray.push(diag);
+			gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+			// CAN'T FIGURE OUT WHAT TO DO HERE TO STOP HANG
+			myPromise = Promise.resolve();
+			//gOutputChannel.appendLine(`doALink.axiosPromise.catch0: end`);
+			return myPromise;
+		}
+		).catch(
+			(error) =>
+		{
+			if (error.response) {
+				//gOutputChannel.appendLine(`doALink.axiosPromise.catch1: ${link.address} error: ${error}, response ${error.response}`);
+			} else if (error.request) {
+				//gOutputChannel.appendLine(`doALink.axiosPromise.catch1: ${link.address} error: ${error}, request ${error.request}`);
+			} else {
+				//gOutputChannel.appendLine(`doALink.axiosPromise.catch1: ${link.address} error: ${error}}`);
+			}
+			// BAD NEWS: WE HANG FOREVER IF TIMEOUT or MAX-REDIRECTS-EXCEEDED AND WE GET HERE
+			// axios created a Promise but rejected starting it, somehow.
+			// We're going to end up with Promises that never resolve,
+			// there seems to be no way to resolve them from this position.
+			// warn that we didn't check this link
+			let start = link.lineText.text.indexOf(link.address);
+			let end = start + link.address.length;
+			//diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Internal error, sorry: ${link.address} was not checked`, DiagnosticSeverity.Warning);
+			diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable and making the extension hang: ${error}`, DiagnosticSeverity.Error);
+			gDiagnosticsArray.push(diag);
+			gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+			//source.cancel();
+			//Promise.resolve(myPromise);
+			//myPromise = null;
+			// Make it look like the extension is not hanging.
+			//myStatusBarItem.text = ``;
+			//myStatusBarItem.show();
+			//gOutputChannel.appendLine(`doALink.axiosPromise.catch1: end`);
+		});
+	} else {
+		if (isNonHTTPLink(link.address)) {
+			let bCheckMailtoDestFormat = gConfiguration.checkMailtoDestFormat;
+			if (bCheckMailtoDestFormat && isMailtoLink(link.address)) {
+				//gOutputChannel.appendLine(`doALink: Checking mailto link.`);
+				if (!isWellFormedMailtoLink(link.address)) {
+					let start = link.lineText.text.indexOf(link.address);
+					let end = start + link.address.length;
+					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is badly-formed.`, DiagnosticSeverity.Error);
+					gDiagnosticsArray.push(diag);
+					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+				}
+			} else {
+				let bReportNonHandledSchemes = gConfiguration.reportNonHandledSchemes;
+				if (bReportNonHandledSchemes) {
+					//gOutputChannel.appendLine(`doALink: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
+					let start = link.lineText.text.indexOf(link.address);
+					let end = start + link.address.length;
+					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
+					gDiagnosticsArray.push(diag);
+					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+				}
+			}
+		} else {
+			// Must be a relative path, but might not be, so try it...
+			try {
+				// Find the directory from the path to the current document
+				var currentWorkingDirectory = path.dirname(gDocument.fileName);
+				// Use that to resolve the full path from the relative link address
+				// The `.split('#')[0]` at the end is so that relative links that also reference an anchor in the document will work with file checking.
+				var fullPath = path.resolve(currentWorkingDirectory, link.address).split('#')[0];
+				// Check if the file exists and log appropriately
+				if (fs.existsSync(fullPath)) {
+					//gOutputChannel.appendLine(`doALink: local file ${link.address} on line ${lineNumber} exists.`);
+				} else {
+					//gOutputChannel.appendLine(`doALink: local file ${link.address} on line ${lineNumber} does not exist.`);
+					let start = link.lineText.text.indexOf(link.address);
+					let end = start + link.address.length;
+					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Local file  ${link.address}  does not exist.`, DiagnosticSeverity.Error);
+					gDiagnosticsArray.push(diag);
+					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+				}
+			} catch (error) {
+				// If there's an error, log the link
+				//gOutputChannel.appendLine(`doALink: ${link.address} on line ${lineNumber} is not an HTTP/s or relative link.`);
+			}
+		}
+	}
+
+    //gOutputChannel.appendLine(`doALink: before Promise resolve`);
+	if (myPromise == null) {
+	    //gOutputChannel.appendLine(`doALink: creating resolved Promise`);
+		myPromise = Promise.resolve();
+	}
+    //gOutputChannel.appendLine(`doALink: returning`);
+	return myPromise;
 }
  
 // Parse the HTML Anchor links out of the document
 function getLinks(document: TextDocument): Promise<Link[]> {
-    //console.log("linkcheckerhtml: getLinks called");
+    //gOutputChannel.appendLine(`getLinks called, document.uri ${document.uri}`);
     // Return a promise, since this might take a while for large documents
     return new Promise<Link[]>((resolve, reject) => {
         // Create arrays to hold links as we parse them out
@@ -329,6 +408,7 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 }
             }
         }
+	    //gOutputChannel.appendLine(`getLinks promise returning, linksToReturn.length ${linksToReturn.length}`);
         if (linksToReturn.length > 0) {
             //Return the populated array, which completes the promise.
             resolve(linksToReturn);
