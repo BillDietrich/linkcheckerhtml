@@ -47,7 +47,7 @@
     "keybindings": [
       {
         "command": "extension.generateLinkReport",
-        "key": "Alt+L"
+        "key": "Alt+H"
       }
     ],
     "configuration": [

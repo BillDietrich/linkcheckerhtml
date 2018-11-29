@@ -9,6 +9,15 @@ Check for broken links in anchor-href, link-href, img-src, and script-src tags i
 
 Also checks for badly-formatted mailto links.
 
+
+## Use
+To check for broken links, open an editor on an HTML file and then press `Alt+H`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.
+
+To see/change settings for this extension, open Settings (Ctrl+,) / Extensions / HTML link checker.
+
+To change the key-combination for this extension, open File / Preferences / Keyboard Shortcuts and search for Alt+H.
+
+
 ### Settings
 * linkcheckerhtml.checkMailtoDestFormat: Check format of email addresses in mailto links.
 * linkcheckerhtml.reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet.
@@ -50,12 +59,6 @@ Either:
 * In CLI, "cd linkcheckerhtml" and then "./CopyToHomeToRunInNormal.sh"
 
 
-## Use
-To check for broken links, open an HTML file and then press `Alt-L`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.
-
-To see/change settings for the extension, open Settings / Extensions / HTML link checker
-
-
 
 ## Releases
 
@@ -75,13 +78,15 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 
 ### To-Do list
 * Get rid of catch-hangs.
+* Add setting to change max parallel threads.
 * Test on many real web pages.
+* Make VSIX file.
+* Memory leaks ?
 * Find URL-click extension that makes human-checking easy.
 * Get rid of: "href" or "src" has to be first attribute in the tag.
 * Multi-line tag silently ignored.
 * Test outside debug environment.
 * Remove need for local copy of node_modules tree ?
-* Memory leaks ?
 * Remove hard-coded paths.
 * Allow anyone to file Issues.
 * Register extension in Marketplace.

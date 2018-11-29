@@ -58,13 +58,13 @@ export function activate(extensionContext:ExtensionContext) {
 	////gOutputChannel.appendLine(`activate: uri = ${window.activeTextEditor.document.uri.toString()}`);
     ////gOutputChannel.appendLine(`activate: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
 
-    commands.registerCommand('extension.generateLinkReport', generateLinkReport);
-
 	myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 0);
 	extensionContext.subscriptions.push(myStatusBarItem);
 	myStatusBarItem.hide();
 
 	gDiagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
+
+    commands.registerCommand('extension.generateLinkReport', generateLinkReport);
 
     //gOutputChannel.appendLine(`activate: finished`);
 }
