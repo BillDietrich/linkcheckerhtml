@@ -5,14 +5,14 @@ VSCode extension that checks for broken links in HTML files.
 THIS PROJECT ISN'T WORKING YET !!!
 
 ## Functionality
-Check for broken links in anchor-href, link-href, img-src, and script-src tags in HTML documents. It checks broken links by trying to resolve HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exist on the local file system.
+Check for broken links in anchor-href, link-href, img-src, and script-src tags in HTML documents. It checks broken links by trying to access HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exists on the local file system.
 
 Also checks for badly-formatted mailto links.
 
 ### Settings
 * linkcheckerhtml.checkMailtoDestFormat: Check format of email addresses in mailto links.
-* linkcheckerhtml.reportNonHandledSchemes: Report (as Information) links with URI schemes not checked by the checker, such as FTP and Telnet.
-* linkcheckerhtml.reportRedirectAsError: Report (as Error) links that get redirected.
+* linkcheckerhtml.reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet.
+* linkcheckerhtml.reportRedirect: Report links that get redirected.
 
 ### Limitations
 * "href" or "src" has to be first attribute in the tag.
@@ -30,7 +30,24 @@ Note that checking for broken links is more of an art than a science. Some sites
 
 
 ## Install
+### From the Marketplace
+
+NOT AVAILABLE YET !!!
+
 Open Visual Studio Code and press `F1`; a field will appear at the top of the window. Type `ext install linkcheckerhtml`, hit enter, and reload the window to enable.
+
+### From VSIX file
+
+NOT AVAILABLE YET !!!
+
+Either:
+* In CLI, do "code --install-extension linkcheckerhtml.vsix", or
+* In VSCode GUI, in the Extensions view command drop-down, select the "Install from VSIX" command.
+
+### From source code
+
+* Do a git clone to copy the source code to "linkcheckerhtml" in your home directory.
+* In CLI, "cd linkcheckerhtml" and then "./CopyToHomeToRunInNormal.sh"
 
 
 ## Use

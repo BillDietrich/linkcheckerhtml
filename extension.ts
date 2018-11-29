@@ -194,8 +194,8 @@ function doALink(link): Promise<null> {
 	// Is it an HTTP* link or a relative link?
 	if (isHttpLink(link.address)) {
 		// And check if they are broken or not.
-		let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
-		//gOutputChannel.appendLine(`doALink: bReportRedirectAsError ${bReportRedirectAsError}`);
+		let bReportRedirects = gConfiguration.reportRedirects;
+		//gOutputChannel.appendLine(`doALink: bReportRedirects ${bReportRedirects}`);
 		//const CancelToken = axios.CancelToken;
 		//const source = CancelToken.source();
 		myPromise = axios.get(link.address,
@@ -203,7 +203,7 @@ function doALink(link): Promise<null> {
 								validateStatus: null,
 								//timeout: 500,
 								//cancelToken: source.token,
-								//maxRedirects: ((sReportRedirectAsError[0]!='D') ? 0 : 9)
+								//maxRedirects: ((sReportRedirects[0]!='D') ? 0 : 9)
 								maxRedirects: 9
 								});
 		myPromise.then(
@@ -211,21 +211,21 @@ function doALink(link): Promise<null> {
 		{
 			// callback function for the "result" branch of the axios Promise
 			//gOutputChannel.appendLine(`doALink.axiosPromise.then: got response for ${response.request}: ${response.status} (${response.statusText})`);
-			let sReportRedirectAsError = gConfiguration.reportRedirectAsError;
+			let sReportRedirects = gConfiguration.reportRedirects;
 			// as Error, as Warning, as Information, Don't report
 			if ((response.status > 400) && (response.status < 600)) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} is unreachable.`);
 				let start = link.lineText.text.indexOf(link.address);
 				let end = start + link.address.length;
-				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirectAsError?` or redirects; `:`; `)+`${response.status} (${response.statusText})`, DiagnosticSeverity.Error);
+				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirects?` or redirects; `:`; `)+`${response.status} (${response.statusText})`, DiagnosticSeverity.Error);
 				gDiagnosticsArray.push(diag);
 				gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
-			} else if ((sReportRedirectAsError[0]!='D') && ((response.status > 300) && (response.status < 400))) {
+			} else if ((sReportRedirects[0]!='D') && ((response.status > 300) && (response.status < 400))) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} redirected.`);
 				let start = link.lineText.text.indexOf(link.address);
 				let end = start + link.address.length;
 				var severity:DiagnosticSeverity = DiagnosticSeverity.Information;
-				switch (sReportRedirectAsError[3]) {
+				switch (sReportRedirects[3]) {
 					case 'E': severity = DiagnosticSeverity.Error; break;
 					case 'W': severity = DiagnosticSeverity.Warning; break;
 					case 'I': severity = DiagnosticSeverity.Information; break;

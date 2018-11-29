@@ -71,7 +71,7 @@
                 "default": "as Information",
                 "description": "Report links with URI schemes not checked by the checker, such as FTP and Telnet ?"
             },
-            "linkcheckerhtml.reportRedirectAsError": {
+            "linkcheckerhtml.reportRedirects": {
                 "type": "string",
           		"enum": [
             			"as Error",
