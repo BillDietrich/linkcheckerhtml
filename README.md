@@ -43,11 +43,9 @@ NOT AVAILABLE YET !!!
 Open Visual Studio Code and press `F1`; a field will appear at the top of the window. Type `ext install linkcheckerhtml`, hit enter, and reload the window to enable.
 
 ### From VSIX file
-NOT AVAILABLE YET !!!
-
 Either:
 * In CLI, do "code --install-extension linkcheckerhtml.vsix", or
-* In VSCode GUI, in the Extensions view command drop-down, select the "Install from VSIX" command.
+* In VSCode GUI, in the Extensions view "..." drop-down, select the "Install from VSIX" command.
 
 ### From source code
 * Do a git clone to copy the source code to "linkcheckerhtml" in your home directory.
