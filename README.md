@@ -2,7 +2,7 @@
 
 VSCode extension that checks for broken links in HTML files.
 
-THIS PROJECT ISN'T WORKING YET !!!
+THIS PROJECT ISN'T RELEASED YET !!!
 
 ## Functionality
 Check for broken links in anchor-href, link-href, img-src, and script-src tags in HTML documents. It checks broken links by trying to access HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exists on the local file system.
@@ -20,7 +20,8 @@ To change the key-combination for this extension, open File / Preferences / Keyb
 
 ### Settings
 * linkcheckerhtml.checkMailtoDestFormat: Check format of email addresses in mailto links.
-* linkcheckerhtml.maxParallelThreads: Maximum number of links to check in parallel (range is 1 to 4).
+* linkcheckerhtml.maxParallelThreads: Maximum number of links to check in parallel (range is 1 to 20; default is 20).
+* linkcheckerhtml.timeout: Timeout (seconds) for accessing a link (range is 5 to 30; default is 8).
 * linkcheckerhtml.reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet.
 * linkcheckerhtml.reportRedirect: Report links that get redirected.
 
@@ -76,18 +77,20 @@ Either:
 
 ### 0.4.0
 * Finally nailed that hang bug.
+* Added setting for timeout.
+* Fixed timeout and redirect settings.
 
 
 ## Development
 
 ### To-Do list
-* Make a setting for timeout.
+* Check forbidden/refused results in browser; maybe a user-agent problem ?
 * Make VSIX file.
+* Test outside debug environment.
 * Memory leaks ?
 * Find URL-click extension that makes human-checking easy.
 * Get rid of: "href" or "src" has to be first attribute in the tag.
 * Multi-line tag silently ignored.
-* Test outside debug environment.
 * Remove need for local copy of node_modules tree ?
 * Remove hard-coded paths.
 * Allow anyone to file Issues.

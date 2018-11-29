@@ -45,6 +45,7 @@ let gConfiguration: WorkspaceConfiguration;
 //var gOutputChannel = null;
 var gDocument = null;
 var gStartingNLinks = 0;
+var gnTimeout = 8;	// seconds
 
 
 // this method is called when your extension is activated
@@ -102,6 +103,11 @@ function generateLinkReport() {
 		nMaxParallelThreads = 1;
 	if (nMaxParallelThreads > 20)
 		nMaxParallelThreads = 20;
+	var gnTimeout = gConfiguration.timeout;
+	if (gnTimeout < 5)
+		gnTimeout = 5;
+	if (gnTimeout > 30)
+		gnTimeout = 30;
 
     // Get all links in the document
     let p1 = getLinks(gDocument);
@@ -204,17 +210,13 @@ function doALink(link): Promise<null> {
 	// Is it an HTTP* link or a relative link?
 	if (isHttpLink(link.address)) {
 		// And check if they are broken or not.
-		let bReportRedirects = gConfiguration.reportRedirects;
+		let sReportRedirects = gConfiguration.reportRedirects;
 		//gOutputChannel.appendLine(`doALink: bReportRedirects ${bReportRedirects}`);
-		//const CancelToken = axios.CancelToken;
-		//const source = CancelToken.source();
 		myPromise = axios.get(link.address,
 								{
 								validateStatus: null,
-								timeout: 8000,
-								//cancelToken: source.token,
-								//maxRedirects: ((sReportRedirects[0]!='D') ? 0 : 9)
-								maxRedirects: 9
+								timeout: (gnTimeout * 1000),
+								maxRedirects: ((sReportRedirects[0]!='D') ? 0 : 4)
 								});
 		myPromise.then(
 			(response) =>
@@ -227,7 +229,7 @@ function doALink(link): Promise<null> {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} is unreachable.`);
 				let start = link.lineText.text.indexOf(link.address);
 				let end = start + link.address.length;
-				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirects?` or redirects; `:`; `)+`${response.status} (${response.statusText})`, DiagnosticSeverity.Error);
+				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable: ${response.status} (${response.statusText})`, DiagnosticSeverity.Error);
 				gDiagnosticsArray.push(diag);
 				gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 			} else if ((sReportRedirects[0]!='D') && ((response.status > 300) && (response.status < 400))) {

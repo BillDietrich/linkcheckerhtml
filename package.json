@@ -65,6 +65,11 @@
                 "default": 20,
                 "description": "Maximum number of links to check in parallel (range is 1 to 20)."
             },
+			"linkcheckerhtml.timeout": {
+                "type": "number",
+                "default": 8,
+                "description": "Timeout (seconds) for accessing a link (range is 5 to 30)."
+            },
             "linkcheckerhtml.reportNonHandledSchemes": {
                 "type": "string",
           		"enum": [
