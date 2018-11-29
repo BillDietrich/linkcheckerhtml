@@ -45,7 +45,6 @@ let gConfiguration: WorkspaceConfiguration;
 //var gOutputChannel = null;
 var gDocument = null;
 var gStartingNLinks = 0;
-var gnMaxParallelThreads = 0;
 
 
 // this method is called when your extension is activated
@@ -98,11 +97,11 @@ function generateLinkReport() {
 */
 
 	gConfiguration = workspace.getConfiguration('linkcheckerhtml');
-	gnMaxParallelThreads = gConfiguration.maxParallelThreads;
-	if (gnMaxParallelThreads < 1)
-		gnMaxParallelThreads = 1;
-	if (gnMaxParallelThreads > 4)
-		gnMaxParallelThreads = 4;
+	var nMaxParallelThreads = gConfiguration.maxParallelThreads;
+	if (nMaxParallelThreads < 1)
+		nMaxParallelThreads = 1;
+	if (nMaxParallelThreads > 20)
+		nMaxParallelThreads = 20;
 
     // Get all links in the document
     let p1 = getLinks(gDocument);
@@ -121,7 +120,7 @@ function generateLinkReport() {
 		gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 */
 
-		let p2 = throttleActions(links, gnMaxParallelThreads);
+		let p2 = throttleActions(links, nMaxParallelThreads);
 		p2.then((links) => {
 		    //gOutputChannel.appendLine(`generateLinkReport.p2.then: called`);
 			myStatusBarItem.text = ``;
@@ -163,8 +162,13 @@ function throttleActions(links, limit): Promise<any> {
 			//gOutputChannel.appendLine(`doNextAction: returning`);
 			return Promise.resolve(doALink(links[linkIndex]))
 				.then(result => {
-					return;
-				}).then(doNextAction);
+					//gOutputChannel.appendLine(`doNextAction: result`);
+					return null;
+				})
+				.catch(error => {
+					//gOutputChannel.appendLine(`doNextAction: catch4`);
+				})
+				.then(doNextAction);
 		}
 	}
 
@@ -207,7 +211,7 @@ function doALink(link): Promise<null> {
 		myPromise = axios.get(link.address,
 								{
 								validateStatus: null,
-								//timeout: 500,
+								timeout: 8000,
 								//cancelToken: source.token,
 								//maxRedirects: ((sReportRedirects[0]!='D') ? 0 : 9)
 								maxRedirects: 9
@@ -249,13 +253,10 @@ function doALink(link): Promise<null> {
 			let start = link.lineText.text.indexOf(link.address);
 			let end = start + link.address.length;
 			//diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Internal error, sorry: ${link.address} was not checked`, DiagnosticSeverity.Warning);
-			diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable and causing the extension to hang: ${error}`, DiagnosticSeverity.Error);
+			diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable: ${error}`, DiagnosticSeverity.Error);
 			gDiagnosticsArray.push(diag);
 			gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
-			// CAN'T FIGURE OUT WHAT TO DO HERE TO STOP HANG
-			myPromise = Promise.resolve();
 			//gOutputChannel.appendLine(`doALink.axiosPromise.catch0: end`);
-			return myPromise;
 		}
 		).catch(
 			(error) =>
@@ -267,23 +268,11 @@ function doALink(link): Promise<null> {
 			} else {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.catch1: ${link.address} error: ${error}}`);
 			}
-			// BAD NEWS: WE HANG FOREVER IF TIMEOUT or MAX-REDIRECTS-EXCEEDED AND WE GET HERE
-			// axios created a Promise but rejected starting it, somehow.
-			// We're going to end up with Promises that never resolve,
-			// there seems to be no way to resolve them from this position.
-			// warn that we didn't check this link
 			let start = link.lineText.text.indexOf(link.address);
 			let end = start + link.address.length;
-			//diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Internal error, sorry: ${link.address} was not checked`, DiagnosticSeverity.Warning);
-			diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable and making the extension hang: ${error}`, DiagnosticSeverity.Error);
+			diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable: ${error}`, DiagnosticSeverity.Error);
 			gDiagnosticsArray.push(diag);
 			gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
-			//source.cancel();
-			//Promise.resolve(myPromise);
-			//myPromise = null;
-			// Make it look like the extension is not hanging.
-			//myStatusBarItem.text = ``;
-			//myStatusBarItem.show();
 			//gOutputChannel.appendLine(`doALink.axiosPromise.catch1: end`);
 		});
 	} else {
@@ -342,11 +331,6 @@ function doALink(link): Promise<null> {
 		}
 	}
 
-    //gOutputChannel.appendLine(`doALink: before Promise resolve`);
-	if (myPromise == null) {
-	    //gOutputChannel.appendLine(`doALink: creating resolved Promise`);
-		myPromise = Promise.resolve();
-	}
     //gOutputChannel.appendLine(`doALink: returning`);
 	return myPromise;
 }

@@ -74,12 +74,14 @@ Either:
 * Changed to throttle so that it checks max of 4 links in parallel.
 * Changed settings to use pull-downs: error, warn, info, don't report
 
+### 0.4.0
+* Finally nailed that hang bug.
+
 
 ## Development
 
 ### To-Do list
-* Get rid of catch-hangs.
-* Test on many real web pages.
+* Make a setting for timeout.
 * Make VSIX file.
 * Memory leaks ?
 * Find URL-click extension that makes human-checking easy.
