@@ -1,8 +1,6 @@
 # HTML link checker
 VSCode extension that checks for broken links in HTML files.
 
-THIS PROJECT ISN'T RELEASED YET !!!
-
 ## Functionality
 Check for broken links in anchor-href, link-href, img-src, and script-src tags in HTML documents. It checks broken links by trying to access HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exists on the local file system.
 
@@ -75,8 +73,7 @@ Either:
 ## Development
 ### To-Do list
 * Check forbidden/refused results in browser; maybe a user-agent problem ?
-* Make VSIX file.
-* Test outside debug environment.
+* Test more.
 * Memory leaks ?
 * Get rid of: "href" or "src" has to be first attribute in the tag.
 * Multi-line tag silently ignored.
