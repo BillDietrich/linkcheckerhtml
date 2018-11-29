@@ -55,9 +55,8 @@ export function activate(extensionContext:ExtensionContext) {
 	//gOutputChannel = window.createOutputChannel("linkcheckerhtml");
     // Show the output channel
     //gOutputChannel.show(false);	// preserveFocus == false
-    ////gOutputChannel.appendLine(`activate: active`);
-	////gOutputChannel.appendLine(`activate: uri = ${window.activeTextEditor.document.uri.toString()}`);
-    ////gOutputChannel.appendLine(`activate: visibleTextEditors.length = ${window.visibleTextEditors.length}`);
+    //gOutputChannel.appendLine(`activate: active`);
+	//gOutputChannel.appendLine(`activate: uri = ${window.activeTextEditor.document.uri.toString()}`);
 
 	myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 0);
 	extensionContext.subscriptions.push(myStatusBarItem);
@@ -67,6 +66,8 @@ export function activate(extensionContext:ExtensionContext) {
 
     commands.registerCommand('extension.generateLinkReport', generateLinkReport);
 
+    commands.registerCommand('extension.openURL', openURL);
+
     //gOutputChannel.appendLine(`activate: finished`);
 }
 
@@ -75,6 +76,22 @@ export function deactivate() {
 	// delete any OS resources you allocated that are not
 	// included in extensionContext.subscriptions
 }
+
+
+// open current selected URL in default browser
+export function openURL() {
+    //gOutputChannel.appendLine(`openURL: called`);
+	let editor = window.activeTextEditor;
+	if (!editor) return;
+	let selection = editor.selection;
+	if (!selection) return;
+	let sURL = editor.document.getText(selection);
+
+    //gOutputChannel.appendLine(`openURL: call open, sURL ${sURL}`);
+	commands.executeCommand('vscode.open', Uri.parse(sURL));	// ignores local files
+    //gOutputChannel.appendLine(`openURL: returning`);
+}
+
 
 // Generate a report of broken links and the line they occur on
 function generateLinkReport() {
@@ -119,12 +136,6 @@ function generateLinkReport() {
 		gStartingNLinks = links.length;
 		myStatusBarItem.text = `Checking ${gStartingNLinks} links ...`;
 		myStatusBarItem.show();
-
-/*
-		diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "messageHHHH", DiagnosticSeverity.Error);
-		gDiagnosticsArray.push(diag);
-		gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
-*/
 
 		let p2 = throttleActions(links, nMaxParallelThreads);
 		p2.then((links) => {
@@ -202,7 +213,7 @@ function doALink(link): Promise<null> {
 	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 */
 
-	////gOutputChannel.appendLine(`doALink: link on line ${link.lineText.lineNumber + 1} is "${link.address}"`);
+	//gOutputChannel.appendLine(`doALink: link on line ${link.lineText.lineNumber + 1} is "${link.address}"`);
 	var lineNumber = link.lineText.lineNumber;
 
 	let myPromise = null;
@@ -211,7 +222,7 @@ function doALink(link): Promise<null> {
 	if (isHttpLink(link.address)) {
 		// And check if they are broken or not.
 		let sReportRedirects = gConfiguration.reportRedirects;
-		//gOutputChannel.appendLine(`doALink: bReportRedirects ${bReportRedirects}`);
+		//gOutputChannel.appendLine(`doALink: sReportRedirects ${sReportRedirects}`);
 		myPromise = axios.get(link.address,
 								{
 								validateStatus: null,
@@ -336,7 +347,9 @@ function doALink(link): Promise<null> {
     //gOutputChannel.appendLine(`doALink: returning`);
 	return myPromise;
 }
- 
+
+
+
 // Parse the HTML Anchor links out of the document
 function getLinks(document: TextDocument): Promise<Link[]> {
     //gOutputChannel.appendLine(`getLinks called, document.uri ${document.uri}`);
@@ -428,6 +441,8 @@ function getLinks(document: TextDocument): Promise<Link[]> {
     }).catch();
 }
 
+
+
 // Is this a valid HTTP/S link?
 function isHttpLink(UriToCheck: string): boolean {
 	var bRetVal = UriToCheck.toLowerCase().startsWith('http://');
@@ -437,6 +452,8 @@ function isHttpLink(UriToCheck: string): boolean {
 		bRetVal = UriToCheck.toLowerCase().startsWith('shttp://');
     return bRetVal;
 }
+
+
 
 // Is this a non-HTTP* link?
 function isNonHTTPLink(UriToCheck: string): boolean {
@@ -460,11 +477,15 @@ function isNonHTTPLink(UriToCheck: string): boolean {
     return bRetVal;
 }
 
+
+
 // Is this a mailto link?
 function isMailtoLink(UriToCheck: string): boolean {
 	var bRetVal = UriToCheck.toLowerCase().startsWith('mailto:');
     return bRetVal;
 }
+
+
 
 // Is this a validly-formatted mailto link?
 // Can be:
@@ -481,20 +502,3 @@ function isWellFormedMailtoLink(UriToCheck: string): boolean {
 	}
     return bRetVal;
 }
-
-/*
-// Generate a diagnostic object
-function OldcreateDiagnostic(severity: DiagnosticSeverity, httpLink, lineText: TextLine, message): Diagnostic {
-    // Get the location of the text in the document
-    // based on position within the line of text it occurs in
-    let startPos = lineText.text.indexOf(httpLink);
-    let endPos = startPos + httpLink.length -1;
-    let start = new Position(lineText.lineNumber,startPos);
-    let end = new Position(lineText.lineNumber, endPos);
-    let range = new Range(start, end);
-    // Create the diagnostic object
-    let diag = new Diagnostic(range, message, severity);
-    // Return the diagnostic
-    return diag;
-}
-*/

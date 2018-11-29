@@ -1,9 +1,9 @@
 {
   "name": "linkcheckerhtml",
   "displayName": "HTML link checker",
-  "description": "When you press Alt+L, checks for broken links.",
+  "description": "Press Alt+H, checks for broken links in HTML file. Press Alt+T, sends currently-selected URL to browser.",
   "icon": "linkcheckerhtmlicon.png",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "BillDietrich",
   "galleryBanner": {
     "color": "#0000FF",
@@ -41,13 +41,27 @@
     "commands": [
       {
         "command": "extension.generateLinkReport",
-        "title": "Generate a link report"
+        "title": "Generate a link report",
+        "category": "HTML",
+		"when": "editorFocus"
+    
+      },
+      {
+        "command": "extension.openURL",
+        "title": "Open an URL in the default browser",
+        "category": "HTML",
+		"when": "editorHasSelection"
+    
       }
     ],
     "keybindings": [
       {
         "command": "extension.generateLinkReport",
         "key": "Alt+H"
+      },
+      {
+        "command": "extension.openURL",
+        "key": "Alt+T"
       }
     ],
     "configuration": [

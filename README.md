@@ -1,5 +1,4 @@
 # HTML link checker
-
 VSCode extension that checks for broken links in HTML files.
 
 THIS PROJECT ISN'T RELEASED YET !!!
@@ -9,14 +8,12 @@ Check for broken links in anchor-href, link-href, img-src, and script-src tags i
 
 Also checks for badly-formatted mailto links.
 
-
 ## Use
-To check for broken links, open an editor on an HTML file and then press `Alt+H`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.
+To check for broken links, open an editor on an HTML file and then press `Alt+H`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.  Click on a diagnostic line, see that link highlighted in the source file, press `Alt+T` to open that URL in your default browser.
 
 To see/change settings for this extension, open Settings (Ctrl+,) / Extensions / HTML link checker.
 
-To change the key-combination for this extension, open File / Preferences / Keyboard Shortcuts and search for Alt+H.
-
+To change the key-combinations for this extension, open File / Preferences / Keyboard Shortcuts and search for Alt+H or Alt+T.
 
 ### Settings
 * linkcheckerhtml.checkMailtoDestFormat: Check format of email addresses in mailto links.
@@ -39,16 +36,13 @@ Note that checking for broken links is more of an art than a science. Some sites
 * If there are multiple identical tags with identical link-targets on same line (for example two Anchor tags with identical href targets), clicking on diagnostic for any of them takes you to first link-target in the source line.
 * Doesn't check ANY of the email address format after "?", as in "mailto:a@b.com?subject=xyz".
 
-
 ## Install
 ### From the Marketplace
-
 NOT AVAILABLE YET !!!
 
 Open Visual Studio Code and press `F1`; a field will appear at the top of the window. Type `ext install linkcheckerhtml`, hit enter, and reload the window to enable.
 
 ### From VSIX file
-
 NOT AVAILABLE YET !!!
 
 Either:
@@ -56,14 +50,11 @@ Either:
 * In VSCode GUI, in the Extensions view command drop-down, select the "Install from VSIX" command.
 
 ### From source code
-
 * Do a git clone to copy the source code to "linkcheckerhtml" in your home directory.
 * In CLI, "cd linkcheckerhtml" and then "./CopyToHomeToRunInNormal.sh"
 
 
-
 ## Releases
-
 ### 0.2.0
 * Copied from "Microsoft / linkcheckermd" and then greatly modified.
 * Extension works, but probably has memory leaks, not much testing.
@@ -80,38 +71,21 @@ Either:
 * Added setting for timeout.
 * Fixed timeout and redirect settings.
 
+### 0.5.0
+* Added Alt+T to open an URL in a browser.
 
 ## Development
-
 ### To-Do list
 * Check forbidden/refused results in browser; maybe a user-agent problem ?
 * Make VSIX file.
 * Test outside debug environment.
 * Memory leaks ?
-* Find URL-click extension that makes human-checking easy.
 * Get rid of: "href" or "src" has to be first attribute in the tag.
 * Multi-line tag silently ignored.
 * Remove need for local copy of node_modules tree ?
 * Remove hard-coded paths.
 * Allow anyone to file Issues.
 * Register extension in Marketplace.
-
-### Things tried or considered
-
-#### Various modules for the network interface
-* broken-link module: worked but no info about why an URL failed.  https://github.com/rafaelrinaldi/broken-link
-* node-fetch module: mysterious hangs, unrelated to number of links, timeouts/signals apparently don't work, redirect option seemed backwards.  https://github.com/bitinn/node-fetch
-* http module: too low-level.  https://nodejs.org/api/http.html
-* got module: threw rejects in various ways when creating Promises for some URLS, couldn't figure out why or how to resolve the Promises so we didn't hang.  https://github.com/sindresorhus/got
-* axios module: works, but throws rejects for over 40 or so links, but they don't cause hangs. Gets into catch for some links, and they DO cause hangs.  https://github.com/axios/axios https://stackoverflow.com/questions/tagged/axios
-* request module: haven't tried yet.  https://www.npmjs.com/package/request https://stackabuse.com/the-node-js-request-module/
-Relevant: https://www.tomas-dvorak.cz/posts/nodejs-request-without-dependencies/
-Relevant: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-Relevant: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-
-#### Ways of parsing URIs
-* Hand-written code: worked.
-* Looked at a bunch of URL-parsing modules, didn't find one that would handle lots of cases and report format errors
 
 ### Development Environment
 I don't really know what I'm doing with much of this stuff, probably I'm doing some things stupidly.
