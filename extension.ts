@@ -23,16 +23,13 @@ import {
 import fs = require('fs');
 // For checking relative URIs against the local file system
 import path = require('path');
-// For checking broken links
+// For checking internet URIs
 import {
 	AxiosPromise,
 	AxiosResponse,
 	CancelToken
 	} from 'axios';
 const axios = require('axios');
-//import {
-//	ClientRequest
-//	} from 'http';
 
 //Interface for links
 interface Link {
@@ -206,21 +203,34 @@ function doALink(link): Promise<null> {
 								validateStatus: null,
 								//timeout: 500,
 								//cancelToken: source.token,
-								//maxRedirects: (bReportRedirectAsError ? 0 : 1)
-								maxRedirects: 99
+								//maxRedirects: ((sReportRedirectAsError[0]!='D') ? 0 : 9)
+								maxRedirects: 9
 								});
 		myPromise.then(
 			(response) =>
 		{
 			// callback function for the "result" branch of the axios Promise
 			//gOutputChannel.appendLine(`doALink.axiosPromise.then: got response for ${response.request}: ${response.status} (${response.statusText})`);
-			let bReportRedirectAsError = gConfiguration.reportRedirectAsError;
-			if (((response.status > 400) && (response.status < 600))
-					|| (bReportRedirectAsError && ((response.status > 300) && (response.status < 400)))) {
+			let sReportRedirectAsError = gConfiguration.reportRedirectAsError;
+			// as Error, as Warning, as Information, Don't report
+			if ((response.status > 400) && (response.status < 600)) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} is unreachable.`);
 				let start = link.lineText.text.indexOf(link.address);
 				let end = start + link.address.length;
 				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable`+(bReportRedirectAsError?` or redirects; `:`; `)+`${response.status} (${response.statusText})`, DiagnosticSeverity.Error);
+				gDiagnosticsArray.push(diag);
+				gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+			} else if ((sReportRedirectAsError[0]!='D') && ((response.status > 300) && (response.status < 400))) {
+				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} redirected.`);
+				let start = link.lineText.text.indexOf(link.address);
+				let end = start + link.address.length;
+				var severity:DiagnosticSeverity = DiagnosticSeverity.Information;
+				switch (sReportRedirectAsError[3]) {
+					case 'E': severity = DiagnosticSeverity.Error; break;
+					case 'W': severity = DiagnosticSeverity.Warning; break;
+					case 'I': severity = DiagnosticSeverity.Information; break;
+				}
+				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} redirects; ${response.status} (${response.statusText})`, severity);
 				gDiagnosticsArray.push(diag);
 				gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 			} else {
@@ -283,12 +293,19 @@ function doALink(link): Promise<null> {
 					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 				}
 			} else {
-				let bReportNonHandledSchemes = gConfiguration.reportNonHandledSchemes;
-				if (bReportNonHandledSchemes) {
+				let sReportNonHandledSchemes = gConfiguration.reportNonHandledSchemes;
+				// as Error, as Warning, as Information, Don't report
+				if (sReportNonHandledSchemes[0] != 'D') {
 					//gOutputChannel.appendLine(`doALink: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
 					let start = link.lineText.text.indexOf(link.address);
 					let end = start + link.address.length;
-					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is non-HTTP* link; not checked.`, DiagnosticSeverity.Information);
+					var severity:DiagnosticSeverity = DiagnosticSeverity.Information;
+					switch (sReportNonHandledSchemes[3]) {
+						case 'E': severity = DiagnosticSeverity.Error; break;
+						case 'W': severity = DiagnosticSeverity.Warning; break;
+						case 'I': severity = DiagnosticSeverity.Information; break;
+					}
+					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is non-HTTP* link; not checked.`, severity);
 					gDiagnosticsArray.push(diag);
 					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 				}

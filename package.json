@@ -61,14 +61,26 @@
                 "description": "Check format of email addresses in mailto links."
             },
             "linkcheckerhtml.reportNonHandledSchemes": {
-                "type": "boolean",
-                "default": true,
-                "description": "Report (as Information) links with URI schemes not checked by the checker, such as FTP and Telnet."
+                "type": "string",
+          		"enum": [
+            			"as Error",
+            			"as Warning",
+            			"as Information",
+            			"Don't report"
+						],
+                "default": "as Information",
+                "description": "Report links with URI schemes not checked by the checker, such as FTP and Telnet ?"
             },
             "linkcheckerhtml.reportRedirectAsError": {
-                "type": "boolean",
-                "default": true,
-                "description": "Report (as Error) links that get redirected."
+                "type": "string",
+          		"enum": [
+            			"as Error",
+            			"as Warning",
+            			"as Information",
+            			"Don't report"
+						],
+                "default": "as Warning",
+                "description": "Report links that get redirected ?"
             }
         }
 		}

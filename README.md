@@ -51,14 +51,14 @@ To see/change settings for the extension, open Settings / Extensions / HTML link
 * Changed to use got module (https://github.com/sindresorhus/got) instead of node-fetch.  But has bad hangs.
 * Changed to use axios module (https://github.com/axios/axios) instead of node-fetch.  Works, but hangs on some URLs.
 * Changed to throttle so that it checks max of 4 links in parallel.
+* Changed settings to use pull-downs: error, warn, info, don't report
 
 
 ## Development
 
 ### To-Do list
+* Get rid of catch-hangs.
 * Test on many real web pages.
-* Change to use uri-js module to parse URIs ?
-* Change settings to use pull-downs: error, warn, info, success
 * Find URL-click extension that makes human-checking easy.
 * Get rid of: "href" or "src" has to be first attribute in the tag.
 * Multi-line tag silently ignored.
@@ -84,7 +84,7 @@ Relevant: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
 
 #### Ways of parsing URIs
 * Hand-written code: worked.
-* uri-js module: haven't tried yet.  https://github.com/garycourt/uri-js
+* Looked at a bunch of URL-parsing modules, didn't find one that would handle lots of cases and report format errors
 
 ### Development Environment
 I don't really know what I'm doing with much of this stuff, probably I'm doing some things stupidly.
