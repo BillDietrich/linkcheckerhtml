@@ -20,6 +20,7 @@ To change the key-combination for this extension, open File / Preferences / Keyb
 
 ### Settings
 * linkcheckerhtml.checkMailtoDestFormat: Check format of email addresses in mailto links.
+* linkcheckerhtml.maxParallelThreads: Maximum number of links to check in parallel (range is 1 to 4).
 * linkcheckerhtml.reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet.
 * linkcheckerhtml.reportRedirect: Report links that get redirected.
 
@@ -78,7 +79,6 @@ Either:
 
 ### To-Do list
 * Get rid of catch-hangs.
-* Add setting to change max parallel threads.
 * Test on many real web pages.
 * Make VSIX file.
 * Memory leaks ?

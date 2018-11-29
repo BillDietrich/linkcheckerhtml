@@ -60,6 +60,11 @@
                 "default": true,
                 "description": "Check format of email addresses in mailto links."
             },
+			"linkcheckerhtml.maxParallelThreads": {
+                "type": "number",
+                "default": 3,
+                "description": "Maximum number of links to check in parallel (range is 1 to 4)."
+            },
             "linkcheckerhtml.reportNonHandledSchemes": {
                 "type": "string",
           		"enum": [

@@ -45,6 +45,7 @@ let gConfiguration: WorkspaceConfiguration;
 //var gOutputChannel = null;
 var gDocument = null;
 var gStartingNLinks = 0;
+var gnMaxParallelThreads = 0;
 
 
 // this method is called when your extension is activated
@@ -97,6 +98,11 @@ function generateLinkReport() {
 */
 
 	gConfiguration = workspace.getConfiguration('linkcheckerhtml');
+	gnMaxParallelThreads = gConfiguration.maxParallelThreads;
+	if (gnMaxParallelThreads < 1)
+		gnMaxParallelThreads = 1;
+	if (gnMaxParallelThreads > 4)
+		gnMaxParallelThreads = 4;
 
     // Get all links in the document
     let p1 = getLinks(gDocument);
@@ -115,7 +121,7 @@ function generateLinkReport() {
 		gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 */
 
-		let p2 = throttleActions(links, 4);
+		let p2 = throttleActions(links, gnMaxParallelThreads);
 		p2.then((links) => {
 		    //gOutputChannel.appendLine(`generateLinkReport.p2.then: called`);
 			myStatusBarItem.text = ``;
