@@ -3,7 +3,7 @@
   "displayName": "HTML link checker",
   "description": "Press Alt+H, checks for broken links in HTML file. Press Alt+T, sends currently-selected URL to browser.",
   "icon": "linkcheckerhtmlicon.png",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "publisher": "BillDietrich",
   "galleryBanner": {
     "color": "#0000FF",

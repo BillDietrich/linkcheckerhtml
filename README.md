@@ -9,6 +9,8 @@ Also checks for badly-formatted mailto links.
 ## Use
 To check for broken links, open an editor on an HTML file and then press `Alt+H`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.  Click on a diagnostic line, see that link highlighted in the source file, press `Alt+T` to open that URL in your default browser.
 
+Tip: After you do Alt+H and get diagnostics, work on the problems from bottom (last diagnostic) to top (first diagnostic).  That way the line numbers don't change out from under the diagnostics if you delete lines.
+
 To see/change settings for this extension, open Settings (Ctrl+,) / Extensions / HTML link checker.
 
 To change the key-combinations for this extension, open File / Preferences / Keyboard Shortcuts and search for Alt+H or Alt+T.
@@ -21,8 +23,7 @@ To change the key-combinations for this extension, open File / Preferences / Key
 * linkcheckerhtml.reportRedirect: Report links that get redirected.
 
 ### Limitations
-* "href" or "src" has to be first attribute in the tag.
-* Tag and first attribute must be on the same line.
+* Tag name and first attribute must be on the same line.
 * Doesn't know about comments; will find and check tags inside comments.
 * Doesn't check local "#name" links.
 * Written to match the behavior of HtmlHint, not browsers.  HtmlHint objects to uppercase in tag and attribute names, doesn't allow single-quotes instead of double-quotes.
@@ -36,7 +37,7 @@ Note that checking for broken links is more of an art than a science. Some sites
 
 ## Install
 ### From the Marketplace
-NOT AVAILABLE YET !!!
+NOT AVAILABLE YET
 
 Open Visual Studio Code and press `F1`; a field will appear at the top of the window. Type `ext install linkcheckerhtml`, hit enter, and reload the window to enable.
 
@@ -70,15 +71,18 @@ Either:
 ### 0.5.0
 * Added Alt+T to open an URL in a browser.
 
+### 0.6.0
+* Got rid of: "href" or "src" has to be first attribute in the tag.
+* Require at least one "." in mailto address's domain.
+
 ## Development
 ### To-Do list
+* Click on diagnostic, do Alt-T to browser, come back to VSCode, cursor is in diagnostics pane instead of in source file ?
 * Check forbidden/refused results in browser; maybe a user-agent problem ?
 * Test more.
 * Memory leaks ?
-* Get rid of: "href" or "src" has to be first attribute in the tag.
-* Multi-line tag silently ignored.
-* Remove need for local copy of node_modules tree ?
-* Remove hard-coded paths.
+* Multi-line tag (tag name and href/src attribute on different lines) silently ignored.
+* Remove need for local copy of node_modules tree ?  Seems to be standard.
 * Allow anyone to file Issues.
 * Register extension in Marketplace.
 

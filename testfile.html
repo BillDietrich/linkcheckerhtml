@@ -48,7 +48,7 @@ Remote URLs:
 <a href="https://microsoft.com/sporf6">bad</a>.
 -->
 
-Unnsupported schemes:
+Unsupported schemes:
 
 Or an <a href="ftp://microsoft.com">FTP link</a>.
 <br /><br />
@@ -61,9 +61,11 @@ Two identical-target links on one line <a href="./nofile.html">first</a> and <a 
 
 Mailto links:
 
-<a href="mailto:a1b2C3@yahoo.com">well-formed</a>, <a href="mailto:a1b2C3@yahoo">badly-formed</a>,
-<a href="mailto:a1b2C3yahoo.com">badly-formed</a>, <a href="mailto:a1b2C3@yahoo.com?Subject=xxx">well-formed</a>,
-<a href="mailto:a1b2C3@yahoo.com?">badly-formed</a>.
+<a href="mailto:a1b2C3@yahoo.com">well-formed</a>
+<a href="mailto:a1b2C3@yahoo">badly-formed</a>
+<a href="mailto:a1b2C3yahoo.com">badly-formed</a>
+<a href="mailto:a1b2C3@yahoo.com?Subject=xxx">well-formed</a>
+<a href="mailto:a1b2C3@yahoo.com?">badly-formed</a>
 <br /><br />
 
 link-href good: <link href="./testfile.html" /> and link-href bad: <a href="./nofile.html" />.
@@ -73,6 +75,9 @@ link-href good: <link href="./testfile.html" /> and link-href bad: <a href="./no
 <br /><br />
 
 img-src good: <img src="./testfile.html" /> and img-src bad: <img src="./nofile.html" />.
+<br /><br />
+
+<a height="3" href="./nofile.html">Href not first attribute</a> and similar <img height="3" src="./nofile2.html" />.
 
 </body>
 </html>

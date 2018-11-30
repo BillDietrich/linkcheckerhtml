@@ -364,14 +364,16 @@ function getLinks(document: TextDocument): Promise<Link[]> {
         for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
             // Get the text for the current line
             let lineText = document.lineAt(lineNumber);
+
             // Are there links?
-			// Anchor-href link looks like: <a href="urlhere" ... >
-            var links = lineText.text.match(/<a\s+href="[^"]*"/g);
+
+			// Anchor-href link looks like: <a ... href="urlhere" ... >
+            var links = lineText.text.match(/<a[^>]*\shref="[^"]*"/g);
             if (links) {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-                    var link = links[i].match(/<a\s+href="([^"]*)"/);
+                    var link = links[i].match(/<a[^>]*\shref="([^"]*)"/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -381,13 +383,14 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     });
                 }
             }
-			// Img-src link looks like: <img src="urlhere" ... >
-            links = lineText.text.match(/<img\s+src="[^"]*"/g);
+
+			// Img-src link looks like: <img ... src="urlhere" ... >
+            links = lineText.text.match(/<img[^>]*\ssrc="[^"]*"/g);
             if (links) {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-                    var link = links[i].match(/<img\s+src="([^"]*)"/);
+                    var link = links[i].match(/<img[^>]*\ssrc="([^"]*)"/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -397,13 +400,14 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     });
                 }
             }
-			// Script-src link looks like: <script src="urlhere" ... >
-            links = lineText.text.match(/<script\s+src="[^"]*"/g);
+
+			// Script-src link looks like: <script ... src="urlhere" ... >
+            links = lineText.text.match(/<script[^>]*\ssrc="[^"]*"/g);
             if (links) {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-                    var link = links[i].match(/<script\s+src="([^"]*)"/);
+                    var link = links[i].match(/<script[^>]*\ssrc="([^"]*)"/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -413,13 +417,14 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     });
                 }
             }
-			// Link-href link looks like: <link href="urlhere" ... >
-            links = lineText.text.match(/<link\s+href="[^"]*"/g);
+			
+			// Link-href link looks like: <link ... href="urlhere" ... >
+            links = lineText.text.match(/<link[^>]*\shref="[^"]*"/g);
             if (links) {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-                    var link = links[i].match(/<link\s+href="([^"]*)"/);
+                    var link = links[i].match(/<link[^>]*\shref="([^"]*)"/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -494,10 +499,10 @@ function isMailtoLink(UriToCheck: string): boolean {
 // https://en.wikipedia.org/wiki/Email_address#Syntax
 // Doesn't check for lots of details such as "hyphen can't be first or last char of domain name"
 function isWellFormedMailtoLink(UriToCheck: string): boolean {
-	var regex1 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-\.]+$/i;
+	var regex1 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-]+\.[a-z0-9\-\.]+$/i;
 	var bRetVal = regex1.test(UriToCheck);
 	if (!bRetVal) {
-		var regex2 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-\.]+\?.+/i;
+		var regex2 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-]+\.[a-z0-9\-\.]+\?.+/i;
 		bRetVal = regex2.test(UriToCheck);
 	}
     return bRetVal;
