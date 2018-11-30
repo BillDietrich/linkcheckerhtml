@@ -70,21 +70,24 @@ Either:
 
 ### 0.5.0
 * Added Alt+T to open an URL in a browser.
+* First release with a VSIX file.
 
 ### 0.6.0
 * Got rid of: "href" or "src" has to be first attribute in the tag.
 * Require at least one "." in mailto address's domain.
+* Try to dispose memory properly to avoid leaks.
+* Handle local files with "?args" on the end.
 
 ## Development
 ### To-Do list
-* Click on diagnostic, do Alt-T to browser, come back to VSCode, cursor is in diagnostics pane instead of in source file ?
+* Click on diagnostic, do Alt-T to browser, come back to VSCode, cursor is in filter field of diagnostics pane instead of in source file.  More convenient if in source file.  But seems to be no way to do it.
 * Check forbidden/refused results in browser; maybe a user-agent problem ?
 * Test more.
 * Memory leaks ?
+* Register extension in Marketplace.
 * Multi-line tag (tag name and href/src attribute on different lines) silently ignored.
 * Remove need for local copy of node_modules tree ?  Seems to be standard.
-* Allow anyone to file Issues.
-* Register extension in Marketplace.
+* mailto that ends with "?" not caught for some reason
 
 ### Development Environment
 I don't really know what I'm doing with much of this stuff, probably I'm doing some things stupidly.

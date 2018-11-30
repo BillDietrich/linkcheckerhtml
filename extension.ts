@@ -63,10 +63,13 @@ export function activate(extensionContext:ExtensionContext) {
 	myStatusBarItem.hide();
 
 	gDiagnosticsCollection = languages.createDiagnosticCollection("linkcheckerhtml");
+	extensionContext.subscriptions.push(gDiagnosticsCollection);
 
-    commands.registerCommand('extension.generateLinkReport', generateLinkReport);
+    let disposable1 = commands.registerCommand('extension.generateLinkReport', generateLinkReport);
+	extensionContext.subscriptions.push(disposable1);
 
-    commands.registerCommand('extension.openURL', openURL);
+    let disposable2 = commands.registerCommand('extension.openURL', openURL);
+	extensionContext.subscriptions.push(disposable2);
 
     //gOutputChannel.appendLine(`activate: finished`);
 }
@@ -86,6 +89,11 @@ export function openURL() {
 	let selection = editor.selection;
 	if (!selection) return;
 	let sURL = editor.document.getText(selection);
+
+	// want to move cursor from diagnostics pane to editor pane
+	// but can't figure out how to do it
+	//window.showTextDocument(editor);
+	//workbench.action.navigateToLastEditLocation
 
     //gOutputChannel.appendLine(`openURL: call open, sURL ${sURL}`);
 	commands.executeCommand('vscode.open', Uri.parse(sURL));	// ignores local files
@@ -373,7 +381,8 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-                    var link = links[i].match(/<a[^>]*\shref="([^"]*)"/);
+					// tricky: trim off any "?" and anything after it
+                    var link = links[i].match(/<a[^>]*\shref="([^"\?]*)[\?"]/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -390,7 +399,8 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-                    var link = links[i].match(/<img[^>]*\ssrc="([^"]*)"/);
+					// tricky: trim off any "?" and anything after it
+                    var link = links[i].match(/<img[^>]*\ssrc="([^"\?]*)[\?"]/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -407,7 +417,8 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-                    var link = links[i].match(/<script[^>]*\ssrc="([^"]*)"/);
+					// tricky: trim off any "?" and anything after it
+                    var link = links[i].match(/<script[^>]*\ssrc="([^"\?]*)[\?"]/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -424,7 +435,8 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-                    var link = links[i].match(/<link[^>]*\shref="([^"]*)"/);
+					// tricky: trim off any "?" and anything after it
+                    var link = links[i].match(/<link[^>]*\shref="([^"\?]*)[\?"]/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -502,7 +514,7 @@ function isWellFormedMailtoLink(UriToCheck: string): boolean {
 	var regex1 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-]+\.[a-z0-9\-\.]+$/i;
 	var bRetVal = regex1.test(UriToCheck);
 	if (!bRetVal) {
-		var regex2 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-]+\.[a-z0-9\-\.]+\?.+/i;
+		var regex2 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-]+\.[a-z0-9\-\.]+\?.+$/i;
 		bRetVal = regex2.test(UriToCheck);
 	}
     return bRetVal;
