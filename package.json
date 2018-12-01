@@ -1,129 +1,141 @@
 {
-  "name": "linkcheckerhtml",
-  "displayName": "HTML link checker",
-  "description": "Press Alt+H, checks for broken links in HTML file. Press Alt+T, sends currently-selected URL to browser.",
-  "icon": "linkcheckerhtmlicon.png",
-  "version": "0.7.0",
-  "publisher": "BillDietrich",
-  "galleryBanner": {
-    "color": "#0000FF",
-    "theme": "dark"
-  },
-  "license": "SEE LICENSE IN LICENSE.md",
-  "bugs": {
-    "url": "https://github.com/BillDietrich/linkcheckerhtml/issues",
-    "email": "bill_dietrich@protonmail.com"
-  },
-  "homepage": "https://github.com/BillDietrich/linkcheckerhtml/blob/master/README.md",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/BillDietrich/linkcheckerhtml.git"
-  },
-  "categories": [
-    "Linters",
-    "Other"
-  ],
-  "engines": {
-    "vscode": "^1.29.0"
-  },
-  "activationEvents": [
-    "onLanguage:html"
-  ],
-  "main": "./out/extension",
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "npm run compile && node ./node_modules/vscode/bin/test"
-  },
-  "contributes": {
-    "commands": [
-      {
-        "command": "extension.generateLinkReport",
-        "title": "Generate a link report",
-        "category": "HTML",
-		"when": "editorFocus"
-    
-      },
-      {
-        "command": "extension.openURL",
-        "title": "Open an URL in the default browser",
-        "category": "HTML",
-		"when": "editorHasSelection"
-    
-      }
-    ],
-    "keybindings": [
-      {
-        "command": "extension.generateLinkReport",
-        "key": "Alt+H"
-      },
-      {
-        "command": "extension.openURL",
-        "key": "Alt+T"
-      }
-    ],
-    "configuration": [
-		{
-        "type": "object",
-        "title": "HTML link checker",
-        "properties": {
-			"linkcheckerhtml.checkMailtoDestFormat": {
-                "type": "boolean",
-                "default": true,
-                "description": "Check format of email addresses in mailto links."
-            },
-			"linkcheckerhtml.maxParallelThreads": {
-                "type": "number",
-                "default": 20,
-                "description": "Maximum number of links to check in parallel (range is 1 to 20)."
-            },
-			"linkcheckerhtml.timeout": {
-                "type": "number",
-                "default": 8,
-                "description": "Timeout (seconds) for accessing a link (range is 5 to 30)."
-            },
-            "linkcheckerhtml.reportNonHandledSchemes": {
-                "type": "string",
-          		"enum": [
-            			"as Error",
-            			"as Warning",
-            			"as Information",
-            			"Don't report"
-						],
-                "default": "as Information",
-                "description": "Report links with URI schemes not checked by the checker, such as FTP and Telnet ?"
-            },
-            "linkcheckerhtml.reportRedirects": {
-                "type": "string",
-          		"enum": [
-            			"as Error",
-            			"as Warning",
-            			"as Information",
-            			"Don't report"
-						],
-                "default": "as Warning",
-                "description": "Report links that get redirected ?"
-            },
-            "linkcheckerhtml.localRoot": {
-                "type": "string",
-                "default": ".",
-                "description": "String prepended to links that start with '/'."
-            }
-        }
+	"name": "linkcheckerhtml",
+	"displayName": "HTML link checker",
+	"description": "Press Alt+H, checks for broken links in HTML file. Press Alt+T, sends currently-selected URL to browser.",
+	"author": {
+		"name": "Bill Dietrich"
+	},
+	"icon": "linkcheckerhtmlicon.png",
+	"version": "0.7.0",
+	"publisher": "BillDietrich",
+	"galleryBanner": {
+		"color": "#0000FF",
+		"theme": "dark"
+	},
+	"license": "SEE LICENSE IN LICENSE.md",
+	"bugs": {
+		"url": "https://github.com/BillDietrich/linkcheckerhtml/issues",
+		"email": "bill_dietrich@protonmail.com"
+	},
+	"homepage": "https://github.com/BillDietrich/linkcheckerhtml/blob/master/README.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/BillDietrich/linkcheckerhtml.git"
+	},
+	"categories": [
+		"Linters",
+		"Other"
+	],
+	"keywords": [
+		"HTML",
+		"find",
+		"broken",
+		"link"
+	],
+	"engines": {
+		"vscode": "^1.29.0"
+	},
+	"activationEvents": [
+		"onLanguage:html"
+	],
+	"main": "./out/extension",
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+	},
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.generateLinkReport",
+				"title": "Generate a link report",
+				"category": "HTML",
+				"when": "editorFocus"
+			},
+			{
+				"command": "extension.openURL",
+				"title": "Open an URL in the default browser",
+				"category": "HTML",
+				"when": "editorHasSelection"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "extension.generateLinkReport",
+				"key": "Alt+H"
+			},
+			{
+				"command": "extension.openURL",
+				"key": "Alt+T"
+			}
+		],
+		"configuration": [
+			{
+				"type": "object",
+				"title": "HTML link checker",
+				"properties": {
+					"linkcheckerhtml.checkMailtoDestFormat": {
+					"type": "boolean",
+					"default": true,
+					"description": "Check format of email addresses in mailto links."
+				},
+				"linkcheckerhtml.maxParallelThreads": {
+					"type": "number",
+					"default": 20,
+					"description": "Maximum number of links to check in parallel (range is 1 to 20)."
+				},
+				"linkcheckerhtml.timeout": {
+					"type": "number",
+					"default": 8,
+					"description": "Timeout (seconds) for accessing a link (range is 5 to 30)."
+				},
+				"linkcheckerhtml.reportNonHandledSchemes": {
+					"type": "string",
+					"enum": [
+							"as Error",
+							"as Warning",
+							"as Information",
+							"Don't report"
+							],
+					"default": "as Information",
+					"description": "Report links with URI schemes not checked by the checker, such as FTP and Telnet ?"
+				},
+				"linkcheckerhtml.reportRedirects": {
+					"type": "string",
+					"enum": [
+							"as Error",
+							"as Warning",
+							"as Information",
+							"Don't report"
+							],
+					"default": "as Warning",
+					"description": "Report links that get redirected ?"
+				},
+				"linkcheckerhtml.localRoot": {
+					"type": "string",
+					"default": ".",
+					"description": "String prepended to links that start with '/'."
+				},
+				"linkcheckerhtml.userAgent": {
+					"type": "string",
+					"default": "Mozilla/5.0 Firefox/63.0",
+					"description": "User-Agent value used in Get requests."
+				}
+			}
 		}
-    ]
-  },
-  "devDependencies": {
-    "vscode": "*",
-    "typescript": "*",
-    "@types/node": "^8.10.25",
-    "@types/mocha": "^2.2.42"
-  },
-  "dependencies": {
-    "axios": "^0.18.0",
-    "fs": "^0.0.1-security",
-    "path": "^0.12.7"
-  }
+	]
+	},
+	"devDependencies": {
+		"vscode": "*",
+		"typescript": "*",
+		"@types/node": "^8.10.25",
+		"@types/mocha": "^2.2.42"
+	},
+	"dependencies": {
+		"axios": "^0.18.0",
+		"fs": "^0.0.1-security",
+		"path": "^0.12.7"
+	}
 }

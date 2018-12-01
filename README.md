@@ -22,6 +22,7 @@ To change the key-combinations for this extension, open File / Preferences / Key
 * linkcheckerhtml.reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet.
 * linkcheckerhtml.reportRedirect: Report links that get redirected.
 * linkcheckerhtml.localRoot: String prepended to links that start with "/" (default is ".").
+* linkcheckerhtml.userAgent: User-Agent value used in Get requests (default is "Mozilla/5.0 Firefox/63.0").
 
 ### Limitations
 * Tag name and href/src attribute must be on the same line.
@@ -80,14 +81,14 @@ Either:
 ### 0.7.0
 * Added localRoot setting.
 * Fixed mailto that ends with "?".
+* Added userAgent setting, and it definitely makes some sites happier.
 
 ## Development
 ### To-Do list
 * Click on diagnostic, do Alt-T to browser, come back to VSCode, cursor is in filter field of diagnostics pane instead of in source file.  More convenient if in source file.  But seems to be no way to do it.
-* Check forbidden/refused results in browser; maybe a user-agent problem ?
 * Memory leaks ?  Doesn't seem to be any tool to check an extension for leaking.
 * Multi-line tag (tag name and href/src attribute on different lines) silently ignored.
-* Remove need for local copy of node_modules tree ?  Seems to be standard.
+* Remove need for local copy of node_modules tree during development ?  Seems to be standard.
 
 ### Development Environment
 I don't really know what I'm doing with much of this stuff, probably I'm doing some things stupidly.

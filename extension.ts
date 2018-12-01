@@ -38,10 +38,10 @@ interface Link {
     lineText: TextLine
 }
 
-let myStatusBarItem: StatusBarItem;
-let gDiagnosticsCollection: DiagnosticCollection;
-let gDiagnosticsArray: Array<Diagnostic>;
-let gConfiguration: WorkspaceConfiguration;
+var myStatusBarItem: StatusBarItem = null;
+var gDiagnosticsCollection: DiagnosticCollection = null;
+var gDiagnosticsArray: Array<Diagnostic> = null;
+var gConfiguration: WorkspaceConfiguration = null;
 //var gOutputChannel = null;
 var gDocument = null;
 var gStartingNLinks = 0;
@@ -230,12 +230,14 @@ function doALink(link): Promise<null> {
 	if (isHttpLink(link.address)) {
 		// And check if they are broken or not.
 		let sReportRedirects = gConfiguration.reportRedirects;
-		//gOutputChannel.appendLine(`doALink: sReportRedirects ${sReportRedirects}`);
+		let sUserAgent = gConfiguration.userAgent;
+		//gOutputChannel.appendLine(`doALink: sReportRedirects ${sReportRedirects}, sUserAgent '${sUserAgent}'`);
 		myPromise = axios.get(link.address,
 								{
 								validateStatus: null,
 								timeout: (gnTimeout * 1000),
-								maxRedirects: ((sReportRedirects[0]!='D') ? 0 : 4)
+								maxRedirects: ((sReportRedirects[0]!='D') ? 0 : 4),
+								headers: {'User-Agent': `${sUserAgent}`}
 								});
 		myPromise.then(
 			(response) =>
