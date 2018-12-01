@@ -3,7 +3,7 @@
   "displayName": "HTML link checker",
   "description": "Press Alt+H, checks for broken links in HTML file. Press Alt+T, sends currently-selected URL to browser.",
   "icon": "linkcheckerhtmlicon.png",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "publisher": "BillDietrich",
   "galleryBanner": {
     "color": "#0000FF",
@@ -105,6 +105,11 @@
 						],
                 "default": "as Warning",
                 "description": "Report links that get redirected ?"
+            },
+            "linkcheckerhtml.localRoot": {
+                "type": "string",
+                "default": ".",
+                "description": "String prepended to links that start with '/'."
             }
         }
 		}

@@ -329,19 +329,29 @@ function doALink(link): Promise<null> {
 		} else {
 			// Must be a relative path, but might not be, so try it...
 			try {
+				//gOutputChannel.appendLine(`doALink: link.address '${link.address}'`);
+				// trim off "? and anything after it
+            	var sMatch = link.address.match(/([^?]*)/);
+            	var sAddress = sMatch[1];
+				// if starts with "/", fix it
+				if (sAddress[0] == '/') {
+					let sLocalRoot = gConfiguration.localRoot;
+					sAddress = sLocalRoot + sAddress;
+				}
 				// Find the directory from the path to the current document
 				var currentWorkingDirectory = path.dirname(gDocument.fileName);
 				// Use that to resolve the full path from the relative link address
 				// The `.split('#')[0]` at the end is so that relative links that also reference an anchor in the document will work with file checking.
-				var fullPath = path.resolve(currentWorkingDirectory, link.address).split('#')[0];
+				var fullPath = path.resolve(currentWorkingDirectory, sAddress).split('#')[0];
+				//gOutputChannel.appendLine(`doALink: link.address '${link.address}' and sAddress '${sAddress}' and currentWorkingDirectory '${currentWorkingDirectory}' gives fullPath '${fullPath}'`);
 				// Check if the file exists and log appropriately
 				if (fs.existsSync(fullPath)) {
-					//gOutputChannel.appendLine(`doALink: local file ${link.address} on line ${lineNumber} exists.`);
+					//gOutputChannel.appendLine(`doALink: local file ${sAddress} on line ${lineNumber} exists.`);
 				} else {
-					//gOutputChannel.appendLine(`doALink: local file ${link.address} on line ${lineNumber} does not exist.`);
+					//gOutputChannel.appendLine(`doALink: local file ${sAddress} on line ${lineNumber} does not exist.`);
 					let start = link.lineText.text.indexOf(link.address);
 					let end = start + link.address.length;
-					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Local file  ${link.address}  does not exist.`, DiagnosticSeverity.Error);
+					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Local file  ${sAddress}  does not exist.`, DiagnosticSeverity.Error);
 					gDiagnosticsArray.push(diag);
 					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 				}
@@ -381,8 +391,7 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-					// tricky: trim off any "?" and anything after it
-                    var link = links[i].match(/<a[^>]*\shref="([^"\?]*)[\?"]/);
+                    var link = links[i].match(/<a[^>]*\shref="([^"]*)"/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -399,8 +408,7 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-					// tricky: trim off any "?" and anything after it
-                    var link = links[i].match(/<img[^>]*\ssrc="([^"\?]*)[\?"]/);
+                    var link = links[i].match(/<img[^>]*\ssrc="([^"]*)"/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -417,8 +425,7 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-					// tricky: trim off any "?" and anything after it
-                    var link = links[i].match(/<script[^>]*\ssrc="([^"\?]*)[\?"]/);
+                    var link = links[i].match(/<script[^>]*\ssrc="([^"]*)"/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -435,8 +442,7 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
-					// tricky: trim off any "?" and anything after it
-                    var link = links[i].match(/<link[^>]*\shref="([^"\?]*)[\?"]/);
+                    var link = links[i].match(/<link[^>]*\shref="([^"]*)"/);
                     let address = link[1];
                     //Push it to the array
                     linksToReturn.push({
@@ -511,11 +517,14 @@ function isMailtoLink(UriToCheck: string): boolean {
 // https://en.wikipedia.org/wiki/Email_address#Syntax
 // Doesn't check for lots of details such as "hyphen can't be first or last char of domain name"
 function isWellFormedMailtoLink(UriToCheck: string): boolean {
-	var regex1 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-]+\.[a-z0-9\-\.]+$/i;
+	//gOutputChannel.appendLine(`isWellFormedMailtoLink: called, UriToCheck '${UriToCheck}'`);
+	var regex1 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-]+\.[a-z0-9\-\.]+$/i;
 	var bRetVal = regex1.test(UriToCheck);
+	//gOutputChannel.appendLine(`isWellFormedMailtoLink: first, bRetVal '${bRetVal}'`);
 	if (!bRetVal) {
-		var regex2 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\?\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-]+\.[a-z0-9\-\.]+\?.+$/i;
+		var regex2 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-]+\.[a-z0-9\-\.]+\?[a-z]/i;
 		bRetVal = regex2.test(UriToCheck);
+		//gOutputChannel.appendLine(`isWellFormedMailtoLink: second, bRetVal '${bRetVal}'`);
 	}
     return bRetVal;
 }

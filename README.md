@@ -21,9 +21,10 @@ To change the key-combinations for this extension, open File / Preferences / Key
 * linkcheckerhtml.timeout: Timeout (seconds) for accessing a link (range is 5 to 30; default is 8).
 * linkcheckerhtml.reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet.
 * linkcheckerhtml.reportRedirect: Report links that get redirected.
+* linkcheckerhtml.localRoot: String prepended to links that start with "/" (default is ".").
 
 ### Limitations
-* Tag name and first attribute must be on the same line.
+* Tag name and href/src attribute must be on the same line.
 * Doesn't know about comments; will find and check tags inside comments.
 * Doesn't check local "#name" links.
 * Written to match the behavior of HtmlHint, not browsers.  HtmlHint objects to uppercase in tag and attribute names, doesn't allow single-quotes instead of double-quotes.
@@ -76,16 +77,17 @@ Either:
 * Try to dispose memory properly to avoid leaks.
 * Handle local files with "?args" on the end.
 
+### 0.7.0
+* Added localRoot setting.
+* Fixed mailto that ends with "?".
+
 ## Development
 ### To-Do list
 * Click on diagnostic, do Alt-T to browser, come back to VSCode, cursor is in filter field of diagnostics pane instead of in source file.  More convenient if in source file.  But seems to be no way to do it.
 * Check forbidden/refused results in browser; maybe a user-agent problem ?
-* Test more.
-* Memory leaks ?
-* Register extension in Marketplace.
+* Memory leaks ?  Doesn't seem to be any tool to check an extension for leaking.
 * Multi-line tag (tag name and href/src attribute on different lines) silently ignored.
 * Remove need for local copy of node_modules tree ?  Seems to be standard.
-* mailto that ends with "?" not caught for some reason
 
 ### Development Environment
 I don't really know what I'm doing with much of this stuff, probably I'm doing some things stupidly.
