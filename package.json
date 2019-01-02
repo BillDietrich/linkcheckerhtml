@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -88,7 +88,7 @@
 				},
 				"linkcheckerhtml.timeout": {
 					"type": "number",
-					"default": 8,
+					"default": 12,
 					"description": "Timeout (seconds) for accessing a link (range is 5 to 30)."
 				},
 				"linkcheckerhtml.reportNonHandledSchemes": {

@@ -16,11 +16,11 @@ To see/change settings for this extension, open Settings (Ctrl+,) / Extensions /
 To change the key-combinations for this extension, open File / Preferences / Keyboard Shortcuts and search for Alt+H or Alt+T.
 
 ### Settings
-* linkcheckerhtml.checkMailtoDestFormat: Check format of email addresses in mailto links.
+* linkcheckerhtml.checkMailtoDestFormat: Check format of email addresses in mailto links (default is true).
 * linkcheckerhtml.maxParallelThreads: Maximum number of links to check in parallel (range is 1 to 20; default is 20).
-* linkcheckerhtml.timeout: Timeout (seconds) for accessing a link (range is 5 to 30; default is 8).
-* linkcheckerhtml.reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet.
-* linkcheckerhtml.reportRedirect: Report links that get redirected.
+* linkcheckerhtml.timeout: Timeout (seconds) for accessing a link (range is 5 to 30; default is 12).
+* linkcheckerhtml.reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet (default is "as Information").
+* linkcheckerhtml.reportRedirect: Report links that get redirected (default is "as Warning").
 * linkcheckerhtml.localRoot: String prepended to links that start with "/" (default is ".").
 * linkcheckerhtml.userAgent: User-Agent value used in Get requests (default is "Mozilla/5.0 Firefox/63.0").
 
@@ -37,19 +37,22 @@ Note that checking for broken links is more of an art than a science. Some sites
 * If there are multiple identical tags with identical link-targets on same line (for example two Anchor tags with identical href targets), clicking on diagnostic for any of them takes you to first link-target in the source line.
 * Doesn't check ANY of the email address format after "?", as in "mailto:a@b.com?subject=xyz".
 
+---
+
 ## Install
 ### From the Marketplace
 Open Visual Studio Code and press `F1`; a field will appear at the top of the window. Type `ext install linkcheckerhtml`, hit enter, and reload the window to enable.
 
 ### From VSIX file
 Either:
-* In CLI, do "code --install-extension linkcheckerhtml.vsix", or
+* In CLI, do "code --install-extension linkcheckerhtml-n.n.n.vsix", or
 * In VSCode GUI, in the Extensions view "..." drop-down, select the "Install from VSIX" command.
 
 ### From source code
 * Do a git clone to copy the source code to "linkcheckerhtml" in your home directory.
 * In CLI, "cd linkcheckerhtml" and then "./CopyToHomeToRunInNormal.sh"
 
+---
 
 ## Releases
 ### 0.2.0
@@ -83,11 +86,19 @@ Either:
 * Fixed mailto that ends with "?".
 * Added userAgent setting, and it definitely makes some sites happier.
 
+### 0.8.0
+* Increased default timeout to 12.
+
+---
+
 ## Development
 ### To-Do list
+* Check local anchors (#name) in file.
+* Any way to do retries in axios ?  Apparently not.
+* Memory leaks ?  Doesn't seem to be any tool to check an extension for leaking.  Maybe not possible, since extensions are running inside a huge framework of Electron or Node or something.
+* Display a "busy" cursor ?  Can't.  Window.withProgress could put up a dialog, but the user would have to close the dialog manually, don't want that.
 * Click on diagnostic, do Alt-T to browser, come back to VSCode, cursor is in filter field of diagnostics pane instead of in source file.  More convenient if in source file.  But seems to be no way to do it.
-* Memory leaks ?  Doesn't seem to be any tool to check an extension for leaking.
-* Multi-line tag (tag name and href/src attribute on different lines) silently ignored.
+* Multi-line tag (tag name and href/src attribute on different lines) silently ignored.  Would be a lot of work to deal with, given the simple way the code does parsing.
 * Remove need for local copy of node_modules tree during development ?  Seems to be standard.
 
 ### Development Environment
