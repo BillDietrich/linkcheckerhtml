@@ -2,9 +2,9 @@
 VSCode extension that checks for broken links in HTML files.
 
 ## Functionality
-Check for broken links in anchor-href, link-href, img-src, and script-src tags in HTML documents. It checks broken links by trying to access HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exists on the local file system.
+Check for broken links in anchor-href, link-href, img-src, and script-src tags in current HTML document. It checks broken links by trying to access HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exists on the local file system.
 
-Also checks for badly-formatted mailto links.
+Also checks for badly-formatted mailto links, and duplicate local anchors (anchor-name, anchor-id).
 
 ## Use
 To check for broken links, open an editor on an HTML file and then press `Alt+H`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.  Click on a diagnostic line, see that link highlighted in the source file, press `Alt+T` to open that URL in your default browser.
@@ -25,9 +25,9 @@ To change the key-combinations for this extension, open File / Preferences / Key
 * linkcheckerhtml.userAgent: User-Agent value used in Get requests (default is "Mozilla/5.0 Firefox/63.0").
 
 ### Limitations
-* Tag name and href/src attribute must be on the same line.
+* Tag name and href/src/id attribute must be on the same line.
 * Doesn't know about comments; will find and check tags inside comments.
-* Doesn't check local "#name" links.
+* Checks "#name" links to targets in current file, but not in other local or remote files.
 * Written to match the behavior of HtmlHint, not browsers.  HtmlHint objects to uppercase in tag and attribute names, doesn't allow single-quotes instead of double-quotes.
 * Doesn't check EVERY detail of the email address spec in mailto links.  Just a cursory check.
 
@@ -86,17 +86,19 @@ Either:
 * Fixed mailto that ends with "?".
 * Added userAgent setting, and it definitely makes some sites happier.
 
-### 0.8.0
+### 1.0.0
 * Increased default timeout to 12.
+* Check local anchors (#name) in current file.
+* Support anchor-id (HTML5) as well as anchor-name.
 
 ---
 
 ## Development
 ### To-Do list
-* Check local anchors (#name) in file.
+* Fair amount of duplicate code for creating a diagnostic, probably should move to a function.
 * Any way to do retries in axios ?  Apparently not.
 * Memory leaks ?  Doesn't seem to be any tool to check an extension for leaking.  Maybe not possible, since extensions are running inside a huge framework of Electron or Node or something.
-* Display a "busy" cursor ?  Can't.  Window.withProgress could put up a dialog, but the user would have to close the dialog manually, don't want that.
+* Display a "busy" cursor ?  Can't.  Window.withProgress could put up a dialog, but then user would have to close the dialog manually every time, don't want that.  Doesn't seem to be a way to close that dialog programmatically.
 * Click on diagnostic, do Alt-T to browser, come back to VSCode, cursor is in filter field of diagnostics pane instead of in source file.  More convenient if in source file.  But seems to be no way to do it.
 * Multi-line tag (tag name and href/src attribute on different lines) silently ignored.  Would be a lot of work to deal with, given the simple way the code does parsing.
 * Remove need for local copy of node_modules tree during development ?  Seems to be standard.

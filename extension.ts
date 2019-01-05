@@ -11,6 +11,7 @@ import {
     Range,
     OutputChannel,
     Position,
+	ProgressLocation,
     Uri,
     Disposable,
     TextDocument,
@@ -45,7 +46,10 @@ var gConfiguration: WorkspaceConfiguration = null;
 //var gOutputChannel = null;
 var gDocument = null;
 var gStartingNLinks = 0;
-var gnTimeout = 8;	// seconds
+var gnTimeout = 12;	// seconds
+var gbDone = true;
+var gbCancelled = false;
+var gLocalAnchorNames: Array<String> = null;
 
 
 // this method is called when your extension is activated
@@ -112,6 +116,52 @@ function generateLinkReport() {
 	myStatusBarItem.text = `Checking for broken links ...`;
 	myStatusBarItem.show();
 
+/*
+	// wanted to implement a progress notification dialog, but it
+	// wasn't going to behave the way I wanted
+
+	gbDone = false;
+	gbCancelled = false;
+	window.withProgress({
+			location: ProgressLocation.Notification,
+			cancellable: true
+		}, (progress, token) => {
+			gOutputChannel.appendLine(`generateLinkReport.withProgress: called`);
+			token.onCancellationRequested(() => {
+			    gOutputChannel.appendLine(`generateLinkReport.withProgress: got cancel`);
+				gbCancelled = true;
+			});
+			var p = updateProgressDialog(progress);
+			gOutputChannel.appendLine(`generateLinkReport.withProgress: returning`);
+			return p;
+		}
+		);
+	
+	function updateProgressDialog(progress): Promise<any> {
+		gOutputChannel.appendLine(`updateProgressDialog: called`);
+
+		var p = null;
+		if (!gbDone && !gbCancelled) {
+			gOutputChannel.appendLine(`updateProgressDialog: keep going`);
+			progress.report({ message: myStatusBarItem.text });
+			p = new Promise(resolve => {
+				if (!gbDone && !gbCancelled) {
+					setTimeout(() => {
+						gOutputChannel.appendLine(`updateProgressDialog: timeout fired`);
+						updateProgressDialog(progress)
+					}, 1000);
+				}
+				});
+		} else {
+			// whoops; want to get rid of the progress dialog here,
+			// but turns out the API does not provide for that,
+			// user has to close the dialog manually.
+		}
+		gOutputChannel.appendLine(`updateProgressDialog: returning`);
+		return p;
+	}
+*/
+
 	// should free old array ?
 	gDiagnosticsArray = new Array<Diagnostic>();
 	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
@@ -134,6 +184,8 @@ function generateLinkReport() {
 	if (gnTimeout > 30)
 		gnTimeout = 30;
 
+	gLocalAnchorNames = new Array<String>();
+
     // Get all links in the document
     let p1 = getLinks(gDocument);
 	p1.then((links) => {
@@ -148,8 +200,10 @@ function generateLinkReport() {
 		let p2 = throttleActions(links, nMaxParallelThreads);
 		p2.then((links) => {
 		    //gOutputChannel.appendLine(`generateLinkReport.p2.then: called`);
+			gLocalAnchorNames = null;
 			myStatusBarItem.text = ``;
 			myStatusBarItem.show();
+			gbDone = true;
 		    //gOutputChannel.appendLine(`generateLinkReport.p2.then: all done`);
 		});
 	});
@@ -177,6 +231,9 @@ function throttleActions(links, limit): Promise<any> {
 	// long as there's an action left in the list.
 	function doNextAction() {
 		//gOutputChannel.appendLine(`doNextAction: called, ${links.length-i} links left`);
+
+		if (gbCancelled)
+			return null;
 
 		myStatusBarItem.text = `Checking ${gStartingNLinks} links, ${links.length-i} more to do ...`;
 		myStatusBarItem.show();
@@ -299,7 +356,18 @@ function doALink(link): Promise<null> {
 			//gOutputChannel.appendLine(`doALink.axiosPromise.catch1: end`);
 		});
 	} else {
-		if (isNonHTTPLink(link.address)) {
+		if (link.address[0] == '#') {
+			// reference to a local anchor definition (#name in this file)
+			let address = link.address.substr(1);
+			if (gLocalAnchorNames.indexOf(address) < 0) {
+				// no definition for this link target
+				let start = link.lineText.text.indexOf(link.address);
+				let end = start + link.address.length;
+				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${address}  not found.`, DiagnosticSeverity.Error);
+				gDiagnosticsArray.push(diag);
+				gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+			}
+		} else if (isNonHTTPLink(link.address)) {
 			let bCheckMailtoDestFormat = gConfiguration.checkMailtoDestFormat;
 			if (bCheckMailtoDestFormat && isMailtoLink(link.address)) {
 				//gOutputChannel.appendLine(`doALink: Checking mailto link.`);
@@ -401,6 +469,52 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                         address: address,
                         lineText: lineText
                     });
+                }
+            }
+
+			// Anchor-name definition looks like: <a ... name="urlhere" ... >
+            var links = lineText.text.match(/<a[^>]*\sname="[^"]*"/g);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/<a[^>]*\sname="([^"]*)"/);
+                    let address = link[1];
+					if (gLocalAnchorNames.indexOf(address) >= 0) {
+						// duplicate definition
+						let start = lineText.text.indexOf(address);
+						let end = start + address.length;
+						var diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Duplicate definition of ${address}.`, DiagnosticSeverity.Error);
+						gDiagnosticsArray.push(diag);
+						gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+					} else {
+						// new definition
+                    	// Push it to the array
+                    	gLocalAnchorNames.push(address);
+					}
+                }
+            }
+
+			// Anchor-id (HTML5) definition looks like: <a ... id="urlhere" ... >
+            var links = lineText.text.match(/<a[^>]*\sid="[^"]*"/g);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/<a[^>]*\sid="([^"]*)"/);
+                    let address = link[1];
+					if (gLocalAnchorNames.indexOf(address) >= 0) {
+						// duplicate definition
+						let start = lineText.text.indexOf(address);
+						let end = start + address.length;
+						var diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Duplicate definition of ${address}.`, DiagnosticSeverity.Error);
+						gDiagnosticsArray.push(diag);
+						gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+					} else {
+						// new definition
+                    	// Push it to the array
+                    	gLocalAnchorNames.push(address);
+					}
                 }
             }
 
