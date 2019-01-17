@@ -122,6 +122,16 @@
 					"type": "string",
 					"default": "Mozilla/5.0 Firefox/63.0",
 					"description": "User-Agent value used in Get requests."
+				},
+				"linkcheckerhtml.checkInternalLinks": {
+					"type": "boolean",
+					"default": true,
+					"description": "Check #name links to targets inside current file."
+				},
+				"linkcheckerhtml.processIdAttributeInAnyTag": {
+					"type": "boolean",
+					"default": true,
+					"description": "#name link can be to any tag with ID attribute inside current file."
 				}
 			}
 		}

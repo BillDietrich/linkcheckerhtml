@@ -16,13 +16,15 @@ To see/change settings for this extension, open Settings (Ctrl+,) / Extensions /
 To change the key-combinations for this extension, open File / Preferences / Keyboard Shortcuts and search for Alt+H or Alt+T.
 
 ### Settings
-* linkcheckerhtml.checkMailtoDestFormat: Check format of email addresses in mailto links (default is true).
-* linkcheckerhtml.maxParallelThreads: Maximum number of links to check in parallel (range is 1 to 20; default is 20).
-* linkcheckerhtml.timeout: Timeout (seconds) for accessing a link (range is 5 to 30; default is 12).
-* linkcheckerhtml.reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet (default is "as Information").
-* linkcheckerhtml.reportRedirect: Report links that get redirected (default is "as Warning").
-* linkcheckerhtml.localRoot: String prepended to links that start with "/" (default is ".").
-* linkcheckerhtml.userAgent: User-Agent value used in Get requests (default is "Mozilla/5.0 Firefox/63.0").
+* checkInternalLinks: Check #name links to targets inside current file (default is true).
+* checkMailtoDestFormat: Check format of email addresses in mailto links (default is true).
+* localRoot: String prepended to links that start with "/" (default is ".").
+* maxParallelThreads: Maximum number of links to check in parallel (range is 1 to 20; default is 20).
+* processIdAttributeInAnyTag: #name link can be to any tag with ID attribute inside current file (default is true).
+* reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet (default is "as Information").
+* reportRedirect: Report links that get redirected (default is "as Warning").
+* timeout: Timeout (seconds) for accessing a link (range is 5 to 30; default is 12).
+* userAgent: User-Agent value used in Get requests (default is "Mozilla/5.0 Firefox/63.0").
 
 ### Limitations
 * Tag name and href/src/id attribute must be on the same line.
@@ -34,7 +36,7 @@ To change the key-combinations for this extension, open File / Preferences / Key
 Note that checking for broken links is more of an art than a science. Some sites don't actually return 404, but send you to a landing page. For example, Azure.com works this way. You can go to https://Azure.com/foo/bar and it will happily redirect you to https://Azure.com, with no 404 status returned. So take a status of "OK" with a grain of salt - you may not be arriving at the page you intend.
 
 #### Quirks
-* If there are multiple identical tags with identical link-targets on same line (for example two Anchor tags with identical href targets), clicking on diagnostic for any of them takes you to first link-target in the source line.
+* If there are multiple identical tags with identical link-targets on same line (for example two Anchor tags with identical href targets), clicking on diagnostic for any of them takes you to first one in the source line.
 * Doesn't check ANY of the email address format after "?", as in "mailto:a@b.com?subject=xyz".
 
 ---
@@ -91,6 +93,9 @@ Either:
 * Check local anchors (#name) in current file.
 * Support anchor-id (HTML5) as well as anchor-name.
 
+### 1.1.0
+* Add settings about checking local anchors (#name) and ID attributes in current file.
+
 ---
 
 ## Development
@@ -104,7 +109,7 @@ Either:
 * Remove need for local copy of node_modules tree during development ?  Seems to be standard.
 
 ### Development Environment
-I don't really know what I'm doing with much of this stuff, probably I'm doing some things stupidly.
+I'm no expert on this stuff, maybe I'm doing some things stupidly.
 
 I used:
 * Linux Mint 19
@@ -112,6 +117,8 @@ I used:
 * node 8.10.0
 * npm 3.5.2
 * axios
+* path
+* fs
 * Yeoman
 
 I did:

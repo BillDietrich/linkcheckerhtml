@@ -47,6 +47,8 @@ var gConfiguration: WorkspaceConfiguration = null;
 var gDocument = null;
 var gStartingNLinks = 0;
 var gnTimeout = 12;	// seconds
+var gbCheckInternalLinks = true;
+var gbProcessIdAttributeInAnyTag = true;
 var gbDone = true;
 var gbCancelled = false;
 var gLocalAnchorNames: Array<String> = null;
@@ -178,11 +180,13 @@ function generateLinkReport() {
 		nMaxParallelThreads = 1;
 	if (nMaxParallelThreads > 20)
 		nMaxParallelThreads = 20;
-	var gnTimeout = gConfiguration.timeout;
+	gnTimeout = gConfiguration.timeout;
 	if (gnTimeout < 5)
 		gnTimeout = 5;
 	if (gnTimeout > 30)
 		gnTimeout = 30;
+	gbCheckInternalLinks = gConfiguration.checkInternalLinks;
+	gbProcessIdAttributeInAnyTag = gConfiguration.processIdAttributeInAnyTag;
 
 	gLocalAnchorNames = new Array<String>();
 
@@ -358,14 +362,16 @@ function doALink(link): Promise<null> {
 	} else {
 		if (link.address[0] == '#') {
 			// reference to a local anchor definition (#name in this file)
-			let address = link.address.substr(1);
-			if (gLocalAnchorNames.indexOf(address) < 0) {
-				// no definition for this link target
-				let start = link.lineText.text.indexOf(link.address);
-				let end = start + link.address.length;
-				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${address}  not found.`, DiagnosticSeverity.Error);
-				gDiagnosticsArray.push(diag);
-				gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+			if (gbCheckInternalLinks) {
+				let address = link.address.substr(1);
+				if (gLocalAnchorNames.indexOf(address) < 0) {
+					// no definition for this link target
+					let start = link.lineText.text.indexOf(link.address);
+					let end = start + link.address.length;
+					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${address}  not found.`, DiagnosticSeverity.Error);
+					gDiagnosticsArray.push(diag);
+					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+				}
 			}
 		} else if (isNonHTTPLink(link.address)) {
 			let bCheckMailtoDestFormat = gConfiguration.checkMailtoDestFormat;
@@ -495,28 +501,53 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 }
             }
 
-			// Anchor-id (HTML5) definition looks like: <a ... id="urlhere" ... >
-            var links = lineText.text.match(/<a[^>]*\sid="[^"]*"/g);
-            if (links) {
-                // Iterate over the links found on this line
-                for (let i = 0; i< links.length; i++) {
-                    // Get the URL from each individual link
-                    var link = links[i].match(/<a[^>]*\sid="([^"]*)"/);
-                    let address = link[1];
-					if (gLocalAnchorNames.indexOf(address) >= 0) {
-						// duplicate definition
-						let start = lineText.text.indexOf(address);
-						let end = start + address.length;
-						var diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Duplicate definition of ${address}.`, DiagnosticSeverity.Error);
-						gDiagnosticsArray.push(diag);
-						gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
-					} else {
-						// new definition
-                    	// Push it to the array
-                    	gLocalAnchorNames.push(address);
+			if (gbProcessIdAttributeInAnyTag) {
+				// tag-id definition looks like: < ... id="urlhere" ... >
+				var links = lineText.text.match(/<[^>]*\sid="[^"]*"/g);
+				if (links) {
+					// Iterate over the links found on this line
+					for (let i = 0; i< links.length; i++) {
+						// Get the URL from each individual link
+						var link = links[i].match(/<[^>]*\sid="([^"]*)"/);
+						let address = link[1];
+						if (gLocalAnchorNames.indexOf(address) >= 0) {
+							// duplicate definition
+							let start = lineText.text.indexOf(address);
+							let end = start + address.length;
+							var diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Duplicate definition of ${address}.`, DiagnosticSeverity.Error);
+							gDiagnosticsArray.push(diag);
+							gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+						} else {
+							// new definition
+							// Push it to the array
+							gLocalAnchorNames.push(address);
+						}
 					}
-                }
-            }
+				}
+			} else {
+				// Anchor-id (HTML5) definition looks like: <a ... id="urlhere" ... >
+				var links = lineText.text.match(/<a[^>]*\sid="[^"]*"/g);
+				if (links) {
+					// Iterate over the links found on this line
+					for (let i = 0; i< links.length; i++) {
+						// Get the URL from each individual link
+						var link = links[i].match(/<a[^>]*\sid="([^"]*)"/);
+						let address = link[1];
+						if (gLocalAnchorNames.indexOf(address) >= 0) {
+							// duplicate definition
+							let start = lineText.text.indexOf(address);
+							let end = start + address.length;
+							var diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Duplicate definition of ${address}.`, DiagnosticSeverity.Error);
+							gDiagnosticsArray.push(diag);
+							gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+						} else {
+							// new definition
+							// Push it to the array
+							gLocalAnchorNames.push(address);
+						}
+					}
+				}
+			}
 
 			// Img-src link looks like: <img ... src="urlhere" ... >
             links = lineText.text.match(/<img[^>]*\ssrc="[^"]*"/g);
