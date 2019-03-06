@@ -96,11 +96,15 @@ Either:
 ### 1.1.0
 * Add settings about checking local anchors (#name) and ID attributes in current file.
 
+### 1.2.0
+* Moved repeated add-diagnostic code into a function.
+
 ---
 
 ## Development
 ### To-Do list
-* Fair amount of duplicate code for creating a diagnostic, probably should move to a function.
+* Add setting and code to check if HTTPS equivalent exists for HTTP addresses.
+* Don't check a link if it has rel="nofollow" ?
 * Any way to do retries in axios ?  Apparently not.
 * Memory leaks ?  Doesn't seem to be any tool to check an extension for leaking.  Maybe not possible, since extensions are running inside a huge framework of Electron or Node or something.
 * Display a "busy" cursor ?  Can't.  Window.withProgress could put up a dialog, but then user would have to close the dialog manually every time, don't want that.  Doesn't seem to be a way to close that dialog programmatically.
@@ -113,9 +117,9 @@ I'm no expert on this stuff, maybe I'm doing some things stupidly.
 
 I used:
 * Linux Mint 19
-* VSCode 1.29.1 (which says Node.js 8.9.3)
-* node 8.10.0
-* npm 3.5.2
+* VSCode was 1.29.1 (which says Node.js 8.9.3) now 1.33.0-exploration (which says Node.js: 10.11.0)
+* node was 8.10.0 now 10.15.3
+* npm was 3.5.2 now 6.4.1
 * axios
 * path
 * fs
@@ -125,3 +129,8 @@ I did:
 * Ran Yeoman to make a Typescript test extension, then copied the entire node_module directory tree from there to linkcheckerhtml directory.
 * Put path to node_module directory tree in vscode-typings.d.ts
 * "sudo npm -g install --save axios" then copy /usr/local/lib/node_modules/axios to project node_modules
+
+## Privacy Policy
+This extension doesn't collect or store your identity or personal information in any way.  All it does is read the current editor window and do HTTP accesses of the links or send links to your browser.
+
+

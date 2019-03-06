@@ -56,11 +56,11 @@ var gLocalAnchorNames: Array<String> = null;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(extensionContext:ExtensionContext) {     
+export function activate(extensionContext:ExtensionContext) {
     
 	//gOutputChannel = window.createOutputChannel("linkcheckerhtml");
     // Show the output channel
-    //gOutputChannel.show(false);	// preserveFocus == false
+    //gOutputChannel.show(false);	// preserveFocus === false
     //gOutputChannel.appendLine(`activate: active`);
 	//gOutputChannel.appendLine(`activate: uri = ${window.activeTextEditor.document.uri.toString()}`);
 
@@ -309,24 +309,28 @@ function doALink(link): Promise<null> {
 			// as Error, as Warning, as Information, Don't report
 			if ((response.status > 400) && (response.status < 600)) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} is unreachable.`);
-				let start = link.lineText.text.indexOf(link.address);
-				let end = start + link.address.length;
-				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable: ${response.status} (${response.statusText})`, DiagnosticSeverity.Error);
-				gDiagnosticsArray.push(diag);
-				gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+				addDiagnostic(
+							lineNumber,
+							link.lineText.text.indexOf(link.address),
+							link.address.length,
+							DiagnosticSeverity.Error,
+							`'${link.address}' is unreachable: ${response.status} (${response.statusText})`
+							);
 			} else if ((sReportRedirects[0]!='D') && ((response.status > 300) && (response.status < 400))) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} redirected.`);
-				let start = link.lineText.text.indexOf(link.address);
-				let end = start + link.address.length;
 				var severity:DiagnosticSeverity = DiagnosticSeverity.Information;
 				switch (sReportRedirects[3]) {
 					case 'E': severity = DiagnosticSeverity.Error; break;
 					case 'W': severity = DiagnosticSeverity.Warning; break;
 					case 'I': severity = DiagnosticSeverity.Information; break;
 				}
-				diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} redirects; ${response.status} (${response.statusText})`, severity);
-				gDiagnosticsArray.push(diag);
-				gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+				addDiagnostic(
+							lineNumber,
+							link.lineText.text.indexOf(link.address),
+							link.address.length,
+							severity,
+							`'${link.address}' redirects; ${response.status} (${response.statusText})`
+							);
 			} else {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} is accessible.`);
 			}
@@ -334,12 +338,13 @@ function doALink(link): Promise<null> {
 			(error) =>
 		{
 			//gOutputChannel.appendLine(`doALink.axiosPromise.catch0: ${link.address} error: ${error} typeof error: ${typeof error}`);
-			let start = link.lineText.text.indexOf(link.address);
-			let end = start + link.address.length;
-			//diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Internal error, sorry: ${link.address} was not checked`, DiagnosticSeverity.Warning);
-			diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable: ${error}`, DiagnosticSeverity.Error);
-			gDiagnosticsArray.push(diag);
-			gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+			addDiagnostic(
+						lineNumber,
+						link.lineText.text.indexOf(link.address),
+						link.address.length,
+						DiagnosticSeverity.Error,
+						`'${link.address}' is unreachable: ${error}`
+						);
 			//gOutputChannel.appendLine(`doALink.axiosPromise.catch0: end`);
 		}
 		).catch(
@@ -352,25 +357,29 @@ function doALink(link): Promise<null> {
 			} else {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.catch1: ${link.address} error: ${error}}`);
 			}
-			let start = link.lineText.text.indexOf(link.address);
-			let end = start + link.address.length;
-			diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address} is unreachable: ${error}`, DiagnosticSeverity.Error);
-			gDiagnosticsArray.push(diag);
-			gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+			addDiagnostic(
+						lineNumber,
+						link.lineText.text.indexOf(link.address),
+						link.address.length,
+						DiagnosticSeverity.Error,
+						`'${link.address}' is unreachable: ${error}`
+						);
 			//gOutputChannel.appendLine(`doALink.axiosPromise.catch1: end`);
 		});
 	} else {
-		if (link.address[0] == '#') {
+		if (link.address[0] === '#') {
 			// reference to a local anchor definition (#name in this file)
 			if (gbCheckInternalLinks) {
 				let address = link.address.substr(1);
 				if (gLocalAnchorNames.indexOf(address) < 0) {
 					// no definition for this link target
-					let start = link.lineText.text.indexOf(link.address);
-					let end = start + link.address.length;
-					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${address}  not found.`, DiagnosticSeverity.Error);
-					gDiagnosticsArray.push(diag);
-					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+ 					addDiagnostic(
+								lineNumber,
+								link.lineText.text.indexOf(link.address),
+								link.address.length,
+								DiagnosticSeverity.Error,
+								`Id or name '${address}' not found in current file.`
+								);
 				}
 			}
 		} else if (isNonHTTPLink(link.address)) {
@@ -378,28 +387,32 @@ function doALink(link): Promise<null> {
 			if (bCheckMailtoDestFormat && isMailtoLink(link.address)) {
 				//gOutputChannel.appendLine(`doALink: Checking mailto link.`);
 				if (!isWellFormedMailtoLink(link.address)) {
-					let start = link.lineText.text.indexOf(link.address);
-					let end = start + link.address.length;
-					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is badly-formed.`, DiagnosticSeverity.Error);
-					gDiagnosticsArray.push(diag);
-					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+					addDiagnostic(
+								lineNumber,
+								link.lineText.text.indexOf(link.address),
+								link.address.length,
+								DiagnosticSeverity.Error,
+								`'${link.address}' is badly-formed.`
+								);
 				}
 			} else {
 				let sReportNonHandledSchemes = gConfiguration.reportNonHandledSchemes;
 				// as Error, as Warning, as Information, Don't report
 				if (sReportNonHandledSchemes[0] != 'D') {
 					//gOutputChannel.appendLine(`doALink: ${link.address} on line ${lineNumber} is non-HTTP* link; not checked.`);
-					let start = link.lineText.text.indexOf(link.address);
-					let end = start + link.address.length;
 					var severity:DiagnosticSeverity = DiagnosticSeverity.Information;
 					switch (sReportNonHandledSchemes[3]) {
 						case 'E': severity = DiagnosticSeverity.Error; break;
 						case 'W': severity = DiagnosticSeverity.Warning; break;
 						case 'I': severity = DiagnosticSeverity.Information; break;
 					}
-					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `${link.address}  is non-HTTP* link; not checked.`, severity);
-					gDiagnosticsArray.push(diag);
-					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+					addDiagnostic(
+								lineNumber,
+								link.lineText.text.indexOf(link.address),
+								link.address.length,
+								severity,
+								`'${link.address}' is non-HTTP* link; not checked.`
+								);
 				}
 			}
 		} else {
@@ -410,7 +423,7 @@ function doALink(link): Promise<null> {
             	var sMatch = link.address.match(/([^?]*)/);
             	var sAddress = sMatch[1];
 				// if starts with "/", fix it
-				if (sAddress[0] == '/') {
+				if (sAddress[0] === '/') {
 					let sLocalRoot = gConfiguration.localRoot;
 					sAddress = sLocalRoot + sAddress;
 				}
@@ -425,11 +438,13 @@ function doALink(link): Promise<null> {
 					//gOutputChannel.appendLine(`doALink: local file ${sAddress} on line ${lineNumber} exists.`);
 				} else {
 					//gOutputChannel.appendLine(`doALink: local file ${sAddress} on line ${lineNumber} does not exist.`);
-					let start = link.lineText.text.indexOf(link.address);
-					let end = start + link.address.length;
-					diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Local file  ${sAddress}  does not exist.`, DiagnosticSeverity.Error);
-					gDiagnosticsArray.push(diag);
-					gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+					addDiagnostic(
+								lineNumber,
+								link.lineText.text.indexOf(link.address),
+								link.address.length,
+								DiagnosticSeverity.Error,
+								`Local file '${sAddress}'  does not exist.`
+								);
 				}
 			} catch (error) {
 				// If there's an error, log the link
@@ -488,11 +503,13 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     let address = link[1];
 					if (gLocalAnchorNames.indexOf(address) >= 0) {
 						// duplicate definition
-						let start = lineText.text.indexOf(address);
-						let end = start + address.length;
-						var diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Duplicate definition of ${address}.`, DiagnosticSeverity.Error);
-						gDiagnosticsArray.push(diag);
-						gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+						addDiagnostic(
+									lineNumber,
+									lineText.text.indexOf(address),
+									address.length,
+									DiagnosticSeverity.Error,
+									`Duplicate definition of '${address}'.`
+									);
 					} else {
 						// new definition
                     	// Push it to the array
@@ -512,11 +529,13 @@ function getLinks(document: TextDocument): Promise<Link[]> {
 						let address = link[1];
 						if (gLocalAnchorNames.indexOf(address) >= 0) {
 							// duplicate definition
-							let start = lineText.text.indexOf(address);
-							let end = start + address.length;
-							var diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Duplicate definition of ${address}.`, DiagnosticSeverity.Error);
-							gDiagnosticsArray.push(diag);
-							gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+							addDiagnostic(
+										lineNumber,
+										lineText.text.indexOf(address),
+										address.length,
+										DiagnosticSeverity.Error,
+										`Duplicate definition of '${address}'.`
+										);
 						} else {
 							// new definition
 							// Push it to the array
@@ -535,11 +554,13 @@ function getLinks(document: TextDocument): Promise<Link[]> {
 						let address = link[1];
 						if (gLocalAnchorNames.indexOf(address) >= 0) {
 							// duplicate definition
-							let start = lineText.text.indexOf(address);
-							let end = start + address.length;
-							var diag = new Diagnostic(new Range(new Position(lineNumber,start),new Position(lineNumber,end)), `Duplicate definition of ${address}.`, DiagnosticSeverity.Error);
-							gDiagnosticsArray.push(diag);
-							gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+							addDiagnostic(
+										lineNumber,
+										lineText.text.indexOf(address),
+										address.length,
+										DiagnosticSeverity.Error,
+										`Duplicate definition of '${address}'.`
+										);
 						} else {
 							// new definition
 							// Push it to the array
@@ -674,4 +695,20 @@ function isWellFormedMailtoLink(UriToCheck: string): boolean {
 		//gOutputChannel.appendLine(`isWellFormedMailtoLink: second, bRetVal '${bRetVal}'`);
 	}
     return bRetVal;
+}
+
+
+function addDiagnostic(
+					lineNumber:number,
+					start:number,
+					length:number,
+					severity:DiagnosticSeverity,
+					msg:String
+					): void {
+	var diag = new Diagnostic(
+						new Range(new Position(lineNumber,start),new Position(lineNumber,start+length)),
+						`${msg}`,
+						severity);
+	gDiagnosticsArray.push(diag);
+	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 }
