@@ -37,13 +37,13 @@ interface Link {
     text: string
     address: string
     lineText: TextLine
+	bDoHTTPSForm: boolean	// address is HTTP, but check HTTPS form of it
 }
 
 var myStatusBarItem: StatusBarItem = null;
 var gDiagnosticsCollection: DiagnosticCollection = null;
 var gDiagnosticsArray: Array<Diagnostic> = null;
 var gConfiguration: WorkspaceConfiguration = null;
-//var gOutputChannel = null;
 var gDocument = null;
 var gStartingNLinks = 0;
 var gnTimeout = 12;	// seconds
@@ -52,6 +52,8 @@ var gbProcessIdAttributeInAnyTag = true;
 var gbDone = true;
 var gbCancelled = false;
 var gLocalAnchorNames: Array<String> = null;
+
+//var gOutputChannel = null;	// remove comment chars to do debugging
 
 
 // this method is called when your extension is activated
@@ -77,6 +79,9 @@ export function activate(extensionContext:ExtensionContext) {
     let disposable2 = commands.registerCommand('extension.openURL', openURL);
 	extensionContext.subscriptions.push(disposable2);
 
+    let disposable3 = commands.registerCommand('extension.openURLasHTTPS', openURLasHTTPS);
+	extensionContext.subscriptions.push(disposable3);
+
     //gOutputChannel.appendLine(`activate: finished`);
 }
 
@@ -87,7 +92,7 @@ export function deactivate() {
 }
 
 
-// open current selected URL in default browser
+// open current selected URL in browser
 export function openURL() {
     //gOutputChannel.appendLine(`openURL: called`);
 	let editor = window.activeTextEditor;
@@ -101,9 +106,33 @@ export function openURL() {
 	//window.showTextDocument(editor);
 	//workbench.action.navigateToLastEditLocation
 
-    //gOutputChannel.appendLine(`openURL: call open, sURL ${sURL}`);
+    //gOutputChannel.appendLine(`openURL: call open, sURL '${sURL}'`);
 	commands.executeCommand('vscode.open', Uri.parse(sURL));	// ignores local files
     //gOutputChannel.appendLine(`openURL: returning`);
+}
+
+
+// open current selected HTTP URL as HTTPS URL in browser
+export function openURLasHTTPS() {
+    //gOutputChannel.appendLine(`openURLasHTTPS: called`);
+	let editor = window.activeTextEditor;
+	if (!editor) return;
+	let selection = editor.selection;
+	if (!selection) return;
+	let sURL = editor.document.getText(selection);
+	
+	if (isPlainHttpLink(sURL)) {
+		var sURLasHTTPS = sURL.slice(0, 4) + "s" + sURL.slice(4);
+
+		// want to move cursor from diagnostics pane to editor pane
+		// but can't figure out how to do it
+		//window.showTextDocument(editor);
+		//workbench.action.navigateToLastEditLocation
+
+		//gOutputChannel.appendLine(`openURLasHTTPS: call open, sURLasHTTPS ${sURLasHTTPS}`);
+		commands.executeCommand('vscode.open', Uri.parse(sURLasHTTPS));	// ignores local files
+		//gOutputChannel.appendLine(`openURLasHTTPS: returning`);
+	}
 }
 
 
@@ -128,28 +157,28 @@ function generateLinkReport() {
 			location: ProgressLocation.Notification,
 			cancellable: true
 		}, (progress, token) => {
-			gOutputChannel.appendLine(`generateLinkReport.withProgress: called`);
+			//gOutputChannel.appendLine(`generateLinkReport.withProgress: called`);
 			token.onCancellationRequested(() => {
-			    gOutputChannel.appendLine(`generateLinkReport.withProgress: got cancel`);
+			    //gOutputChannel.appendLine(`generateLinkReport.withProgress: got cancel`);
 				gbCancelled = true;
 			});
 			var p = updateProgressDialog(progress);
-			gOutputChannel.appendLine(`generateLinkReport.withProgress: returning`);
+			//gOutputChannel.appendLine(`generateLinkReport.withProgress: returning`);
 			return p;
 		}
 		);
 	
 	function updateProgressDialog(progress): Promise<any> {
-		gOutputChannel.appendLine(`updateProgressDialog: called`);
+		//gOutputChannel.appendLine(`updateProgressDialog: called`);
 
 		var p = null;
 		if (!gbDone && !gbCancelled) {
-			gOutputChannel.appendLine(`updateProgressDialog: keep going`);
+			//gOutputChannel.appendLine(`updateProgressDialog: keep going`);
 			progress.report({ message: myStatusBarItem.text });
 			p = new Promise(resolve => {
 				if (!gbDone && !gbCancelled) {
 					setTimeout(() => {
-						gOutputChannel.appendLine(`updateProgressDialog: timeout fired`);
+						//gOutputChannel.appendLine(`updateProgressDialog: timeout fired`);
 						updateProgressDialog(progress)
 					}, 1000);
 				}
@@ -159,7 +188,7 @@ function generateLinkReport() {
 			// but turns out the API does not provide for that,
 			// user has to close the dialog manually.
 		}
-		gOutputChannel.appendLine(`updateProgressDialog: returning`);
+		//gOutputChannel.appendLine(`updateProgressDialog: returning`);
 		return p;
 	}
 */
@@ -273,7 +302,7 @@ function throttleActions(links, limit): Promise<any> {
 
 function doALink(link): Promise<null> {
 
-	//gOutputChannel.appendLine(`doALink: called, link.address ${link.address}`);
+	//gOutputChannel.appendLine(`doALink: called, link.address '${link.address}'`);
 
 	var diag = null;
 /*
@@ -282,7 +311,7 @@ function doALink(link): Promise<null> {
 	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 */
 
-	//gOutputChannel.appendLine(`doALink: link on line ${link.lineText.lineNumber + 1} is "${link.address}"`);
+	//gOutputChannel.appendLine(`doALink: link on line ${link.lineText.lineNumber + 1} is ${link.address}'`);
 	var lineNumber = link.lineText.lineNumber;
 
 	let myPromise = null;
@@ -292,8 +321,13 @@ function doALink(link): Promise<null> {
 		// And check if they are broken or not.
 		let sReportRedirects = gConfiguration.reportRedirects;
 		let sUserAgent = gConfiguration.userAgent;
-		//gOutputChannel.appendLine(`doALink: sReportRedirects ${sReportRedirects}, sUserAgent '${sUserAgent}'`);
-		myPromise = axios.get(link.address,
+		let sReportHTTPSAvailable = gConfiguration.reportHTTPSAvailable;
+		//gOutputChannel.appendLine(`doALink: sReportRedirects ${sReportRedirects}, sUserAgent '${sUserAgent}', sReportHTTPSAvailable '${sReportHTTPSAvailable}'`);
+		var address = link.address;
+		if (link.bDoHTTPSForm)
+			address = link.address.slice(0, 4) + "s" + link.address.slice(4);
+		//gOutputChannel.appendLine(`doALink: address '${address}'`);
+		myPromise = axios.get(address,
 								{
 								validateStatus: null,
 								timeout: (gnTimeout * 1000),
@@ -309,30 +343,68 @@ function doALink(link): Promise<null> {
 			// as Error, as Warning, as Information, Don't report
 			if ((response.status > 400) && (response.status < 600)) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} is unreachable.`);
-				addDiagnostic(
-							lineNumber,
-							link.lineText.text.indexOf(link.address),
-							link.address.length,
-							DiagnosticSeverity.Error,
-							`'${link.address}' is unreachable: ${response.status} (${response.statusText})`
-							);
+				if (!link.bDoHTTPSForm) {
+					// HTTP form of link, and it's not found
+					addDiagnostic(
+								lineNumber,
+								link.lineText.text.indexOf(link.address),
+								link.address.length,
+								DiagnosticSeverity.Error,
+								`'${link.address}' is unreachable: ${response.status} (${response.statusText})`
+								);
+				}
+				// else HTTPS form of HTTP link, and it's not found, don't report
 			} else if ((sReportRedirects[0]!='D') && ((response.status > 300) && (response.status < 400))) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} redirected.`);
-				var severity:DiagnosticSeverity = DiagnosticSeverity.Information;
-				switch (sReportRedirects[3]) {
-					case 'E': severity = DiagnosticSeverity.Error; break;
-					case 'W': severity = DiagnosticSeverity.Warning; break;
-					case 'I': severity = DiagnosticSeverity.Information; break;
+				if (!link.bDoHTTPSForm) {
+					// HTTP form of link, and it redirected
+					var severity:DiagnosticSeverity = DiagnosticSeverity.Information;
+					switch (sReportRedirects[3]) {
+						case 'E': severity = DiagnosticSeverity.Error; break;
+						case 'W': severity = DiagnosticSeverity.Warning; break;
+						case 'I': severity = DiagnosticSeverity.Information; break;
+					}
+					addDiagnostic(
+								lineNumber,
+								link.lineText.text.indexOf(link.address),
+								link.address.length,
+								severity,
+								`'${link.address}' redirects; ${response.status} (${response.statusText})`
+								);
+				} else {
+					// else HTTPS form of HTTP link, and it's found and redirected
+					var severity:DiagnosticSeverity = DiagnosticSeverity.Information;
+					switch (sReportHTTPSAvailable[3]) {
+						case 'E': severity = DiagnosticSeverity.Error; break;
+						case 'W': severity = DiagnosticSeverity.Warning; break;
+						case 'I': severity = DiagnosticSeverity.Information; break;
+					}
+					addDiagnostic(
+								lineNumber,
+								link.lineText.text.indexOf(link.address),
+								link.address.length,
+								severity,
+								`HTTPS form of '${link.address}' is available; ${response.status} (${response.statusText})`
+								);
 				}
-				addDiagnostic(
-							lineNumber,
-							link.lineText.text.indexOf(link.address),
-							link.address.length,
-							severity,
-							`'${link.address}' redirects; ${response.status} (${response.statusText})`
-							);
 			} else {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} is accessible.`);
+				if (link.bDoHTTPSForm) {
+					// HTTPS form of link, and it is accessible
+					var severity:DiagnosticSeverity = DiagnosticSeverity.Information;
+					switch (sReportHTTPSAvailable[3]) {
+						case 'E': severity = DiagnosticSeverity.Error; break;
+						case 'W': severity = DiagnosticSeverity.Warning; break;
+						case 'I': severity = DiagnosticSeverity.Information; break;
+					}
+					addDiagnostic(
+								lineNumber,
+								link.lineText.text.indexOf(link.address),
+								link.address.length,
+								severity,
+								`HTTPS form of '${link.address}' is available; ${response.status} (${response.statusText})`
+								);
+				}
 			}
 		},
 			(error) =>
@@ -461,13 +533,26 @@ function doALink(link): Promise<null> {
 
 // Parse the HTML Anchor links out of the document
 function getLinks(document: TextDocument): Promise<Link[]> {
-    //gOutputChannel.appendLine(`getLinks called, document.uri ${document.uri}`);
+    //gOutputChannel.appendLine(`getLinks called, document.uri '${document.uri}'`);
     // Return a promise, since this might take a while for large documents
     return new Promise<Link[]>((resolve, reject) => {
         // Create arrays to hold links as we parse them out
         let linksToReturn = new Array<Link>();
         // Get lines in the document
         let lineCount = document.lineCount;
+
+		let sReportHTTPSAvailable = gConfiguration.reportHTTPSAvailable;
+	    //gOutputChannel.appendLine(`getLinks: sReportHTTPSAvailable '${sReportHTTPSAvailable}'`);
+		// as Error, as Warning, as Information, Don't check and report
+		var bReportHTTPSAvailable = false;
+		switch (sReportHTTPSAvailable[3]) {
+			case 'E':
+			case 'W':
+			case 'I':
+					bReportHTTPSAvailable = true;
+					break;
+		}
+	    //gOutputChannel.appendLine(`getLinks: bReportHTTPSAvailable ${bReportHTTPSAvailable}`);
         
         //Loop over the lines in a document
         for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
@@ -484,12 +569,22 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     // Get the URL from each individual link
                     var link = links[i].match(/<a[^>]*\shref="([^"]*)"/);
                     let address = link[1];
-                    //Push it to the array
+                    // Push it to the array
                     linksToReturn.push({
                         text: link[0],
                         address: address,
-                        lineText: lineText
+                        lineText: lineText,
+						bDoHTTPSForm: false
                     });
+					if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+						// add HTTPS form of it to array also
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: true
+						});
+					}
                 }
             }
 
@@ -578,12 +673,22 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     // Get the URL from each individual link
                     var link = links[i].match(/<img[^>]*\ssrc="([^"]*)"/);
                     let address = link[1];
-                    //Push it to the array
+                    // Push it to the array
                     linksToReturn.push({
                         text: link[0],
                         address: address,
-                        lineText: lineText
+                        lineText: lineText,
+						bDoHTTPSForm: false
                     });
+					if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+						// add HTTPS form of it to array also
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: true
+						});
+					}
                 }
             }
 
@@ -595,12 +700,22 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     // Get the URL from each individual link
                     var link = links[i].match(/<script[^>]*\ssrc="([^"]*)"/);
                     let address = link[1];
-                    //Push it to the array
+                    // Push it to the array
                     linksToReturn.push({
                         text: link[0],
                         address: address,
-                        lineText: lineText
+                        lineText: lineText,
+						bDoHTTPSForm: false
                     });
+					if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+						// add HTTPS form of it to array also
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: true
+						});
+					}
                 }
             }
 			
@@ -612,12 +727,22 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     // Get the URL from each individual link
                     var link = links[i].match(/<link[^>]*\shref="([^"]*)"/);
                     let address = link[1];
-                    //Push it to the array
+                    // Push it to the array
                     linksToReturn.push({
                         text: link[0],
                         address: address,
-                        lineText: lineText
+                        lineText: lineText,
+						bDoHTTPSForm: false
                     });
+					if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+						// add HTTPS form of it to array also
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: true
+						});
+					}
                 }
             }
         }
@@ -634,13 +759,21 @@ function getLinks(document: TextDocument): Promise<Link[]> {
 
 
 
-// Is this a valid HTTP/S link?
+// Is this an HTTP or HTTPS link?
 function isHttpLink(UriToCheck: string): boolean {
 	var bRetVal = UriToCheck.toLowerCase().startsWith('http://');
 	if (!bRetVal)
 		bRetVal = UriToCheck.toLowerCase().startsWith('https://');
 	if (!bRetVal)
 		bRetVal = UriToCheck.toLowerCase().startsWith('shttp://');
+    return bRetVal;
+}
+
+
+
+// Is this an HTTP link?
+function isPlainHttpLink(UriToCheck: string): boolean {
+	var bRetVal = UriToCheck.toLowerCase().startsWith('http://');
     return bRetVal;
 }
 

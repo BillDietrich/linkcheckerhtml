@@ -46,8 +46,8 @@ Remote URLs:
 <a href="https://www.billdietrich.me">valid HTTPS URL</a>
 <a href="http://2016.eicar.org/">valid HTTP URL</a>
 <a href="http://2016.eicar.org">valid HTTP URL</a>
-<a href="http://www.billdietrich.me/">valid HTTP URL that redirects to HTTPS</a>
-<a href="http://www.microsoft.com/">valid HTTP URL that redirects to HTTPS</a>
+<a href="HTTP://www.billdietrich.me/">valid uppercase HTTP URL that redirects to HTTPS</a>
+<a href="HTTP://www.microsoft.com/">valid uppercase HTTP URL that redirects to HTTPS</a>
 <br /><br />
 <a href="https://www.billdietrich.me/Computers.html">valid page on HTTPS site</a>
 This next one doesn't get caught:
@@ -56,17 +56,11 @@ This next one doesn't get caught:
 <a href="https://www.billdietrich.me/nosuchpage.html">invalid page on HTTPS site, redirects to 404 page</a>
 <a href="http://www.billdietrich.me/nosuchpage.html">invalid page on HTTP site, redirects to 404 page on HTTPS</a>
 
-<a href="https://microsoft.com/sporf">invalid page on HTTPS that redirects to a 404-type page</a>
+<a href="HTTPS://microsoft.com/sporf">invalid page on HTTPS that redirects to a 404-type page</a>
 <a href="http://microsoft.com/sporf">invalid page on HTTP that redirects to a 404-type page on HTTPS</a>
 
 <!-- 
-<a href="http://microsoft.com/sporf1">bad</a>,
-<a href="http://microsoft.com/sporf1">bad</a>,
-<a href="http://microsoft.com/sporf2">bad</a>,
-<a href="http://microsoft.com/sporf3">bad</a>,
-<a href="https://microsoft.com/sporf4">bad</a>,
-<a href="https://microsoft.com/sporf5">bad</a>,
-<a href="https://microsoft.com/sporf6">bad</a>.
+<a href="http://microsoft.com/sporf1">bad</a>
 -->
 
 Unsupported schemes:
