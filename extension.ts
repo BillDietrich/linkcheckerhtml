@@ -46,12 +46,13 @@ var gDiagnosticsArray: Array<Diagnostic> = null;
 var gConfiguration: WorkspaceConfiguration = null;
 var gDocument = null;
 var gStartingNLinks = 0;
-var gnTimeout = 12;	// seconds
+var gnTimeout = 15;	// seconds
 var gbCheckInternalLinks = true;
 var gbProcessIdAttributeInAnyTag = true;
 var gbDone = true;
 var gbCancelled = false;
-var gLocalAnchorNames: Array<String> = null;
+var gLocalAnchorNames: Array<string> = null;
+var gaDontCheck: Array<string> = null;
 
 //var gOutputChannel = null;	// remove comment chars to do debugging
 
@@ -217,7 +218,7 @@ function generateLinkReport() {
 	gbCheckInternalLinks = gConfiguration.checkInternalLinks;
 	gbProcessIdAttributeInAnyTag = gConfiguration.processIdAttributeInAnyTag;
 
-	gLocalAnchorNames = new Array<String>();
+	gLocalAnchorNames = new Array<string>();
 
     // Get all links in the document
     let p1 = getLinks(gDocument);
@@ -553,6 +554,24 @@ function getLinks(document: TextDocument): Promise<Link[]> {
 					break;
 		}
 	    //gOutputChannel.appendLine(`getLinks: bReportHTTPSAvailable ${bReportHTTPSAvailable}`);
+		let sDontCheckCSL = gConfiguration.dontCheckURLsThatStartWith;
+	    //gOutputChannel.appendLine(`getLinks: sDontCheckCSL '${sDontCheckCSL}'`);
+		gaDontCheck = new Array<string>();
+		var dontchecks = sDontCheckCSL.match(/[^\,]+/g);
+	    //gOutputChannel.appendLine(`getLinks: dontchecks '${dontchecks}'`);
+		if (dontchecks) {
+			// Iterate over the values found in the comma-separated list
+			for (let i = 0; i< dontchecks.length; i++) {
+				// Get the value
+				var dontcheck = dontchecks[i].match(/[^\,]+/);
+				let sValue = dontcheck[0];
+				// Push it to the array
+				gaDontCheck.push(sValue);
+			}
+		}
+	    //gOutputChannel.appendLine(`getLinks: gaDontCheck[0] ${gaDontCheck[0]}`);
+	    //gOutputChannel.appendLine(`getLinks: gaDontCheck[1] ${gaDontCheck[1]}`);
+	    //gOutputChannel.appendLine(`getLinks: gaDontCheck[2] ${gaDontCheck[2]}`);
         
         //Loop over the lines in a document
         for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
@@ -569,21 +588,23 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     // Get the URL from each individual link
                     var link = links[i].match(/<a[^>]*\shref="([^"]*)"/);
                     let address = link[1];
-                    // Push it to the array
-                    linksToReturn.push({
-                        text: link[0],
-                        address: address,
-                        lineText: lineText,
-						bDoHTTPSForm: false
-                    });
-					if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
-						// add HTTPS form of it to array also
+					if (!DontCheck(address)) {
+						// Push it to the array
 						linksToReturn.push({
 							text: link[0],
 							address: address,
 							lineText: lineText,
-							bDoHTTPSForm: true
+							bDoHTTPSForm: false
 						});
+						if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
 					}
                 }
             }
@@ -673,21 +694,23 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     // Get the URL from each individual link
                     var link = links[i].match(/<img[^>]*\ssrc="([^"]*)"/);
                     let address = link[1];
-                    // Push it to the array
-                    linksToReturn.push({
-                        text: link[0],
-                        address: address,
-                        lineText: lineText,
-						bDoHTTPSForm: false
-                    });
-					if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
-						// add HTTPS form of it to array also
+					if (!DontCheck(address)) {
+						// Push it to the array
 						linksToReturn.push({
 							text: link[0],
 							address: address,
 							lineText: lineText,
-							bDoHTTPSForm: true
+							bDoHTTPSForm: false
 						});
+						if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
 					}
                 }
             }
@@ -700,21 +723,23 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     // Get the URL from each individual link
                     var link = links[i].match(/<script[^>]*\ssrc="([^"]*)"/);
                     let address = link[1];
-                    // Push it to the array
-                    linksToReturn.push({
-                        text: link[0],
-                        address: address,
-                        lineText: lineText,
-						bDoHTTPSForm: false
-                    });
-					if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
-						// add HTTPS form of it to array also
+					if (!DontCheck(address)) {
+						// Push it to the array
 						linksToReturn.push({
 							text: link[0],
 							address: address,
 							lineText: lineText,
-							bDoHTTPSForm: true
+							bDoHTTPSForm: false
 						});
+						if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
 					}
                 }
             }
@@ -727,21 +752,23 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                     // Get the URL from each individual link
                     var link = links[i].match(/<link[^>]*\shref="([^"]*)"/);
                     let address = link[1];
-                    // Push it to the array
-                    linksToReturn.push({
-                        text: link[0],
-                        address: address,
-                        lineText: lineText,
-						bDoHTTPSForm: false
-                    });
-					if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
-						// add HTTPS form of it to array also
+					if (!DontCheck(address)) {
+						// Push it to the array
 						linksToReturn.push({
 							text: link[0],
 							address: address,
 							lineText: lineText,
-							bDoHTTPSForm: true
+							bDoHTTPSForm: false
 						});
+						if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
 					}
                 }
             }
@@ -828,6 +855,19 @@ function isWellFormedMailtoLink(UriToCheck: string): boolean {
 		//gOutputChannel.appendLine(`isWellFormedMailtoLink: second, bRetVal '${bRetVal}'`);
 	}
     return bRetVal;
+}
+
+
+function DontCheck(address:string): boolean {
+	var bRetVal = false;
+	for (let i = 0; i< gaDontCheck.length; i++) {
+		if (address.indexOf("://" + gaDontCheck[i]) != (-1)) {
+			bRetVal = true;
+			break;
+		}
+	}
+	//gOutputChannel.appendLine(`DontCheck: address '${address}', bRetVal ${bRetVal}`);
+	return bRetVal;
 }
 
 

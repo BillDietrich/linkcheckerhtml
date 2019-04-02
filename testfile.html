@@ -59,6 +59,21 @@ This next one doesn't get caught:
 <a href="HTTPS://microsoft.com/sporf">invalid page on HTTPS that redirects to a 404-type page</a>
 <a href="http://microsoft.com/sporf">invalid page on HTTP that redirects to a 404-type page on HTTPS</a>
 
+Numeric URLs:
+<a href="https://1.2.3.4/">invalid page</a>
+IPv6:
+<a href="https://[2600::]/">valid page: Sprint</a>
+<a href="https://[99999::]/">invalid page</a>
+Local URLs:
+<a href="http://localhost/">this machine</a>
+<a href="http://192.168.0.1/">local router</a>
+<a href="https://192.168.0.1/">local router</a>
+Local IPv6:
+<a href="http://[::1]/">equivalent of localhost</a>
+<a href="https://[::1]/">equivalent of localhost</a>
+<a href="https://[FC00::1]/">invalid page</a>
+<a href="https://[FD00::1]/">invalid page</a>
+
 <!-- 
 <a href="http://microsoft.com/sporf1">bad</a>
 -->

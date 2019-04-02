@@ -2,14 +2,14 @@
 VSCode extension that checks for broken links in HTML files.
 
 ## Functionality
-Check for broken links in anchor-href, link-href, img-src, and script-src tags in current HTML document. It checks broken links by trying to access HTTP and HTTPS links, and relative links (../folder/file.html) by checking if the file exists on the local file system.
+Checks for broken links in anchor-href, link-href, img-src, and script-src tags in current HTML document. It checks broken HTTP/HTTPS links by trying to access them on the internet, and checks relative links (../folder/file.html) by checking if the file exists on the local file system.
 
 Also checks for badly-formatted mailto links, and duplicate local anchors (anchor-name, anchor-id).
 
 Also checks for working HTTPS equivalents of HTTP links.
 
 ## Use
-To check for broken links, open an editor on an HTML file and then press `Alt+H`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.  Click on a diagnostic line, see that link highlighted in the source file, press `Alt+T` to open that URL in your browser.  If it's an HTTP link, press `Alt+M` to open the HTTPS equivalent of that URL in your browser.
+Open an editor window on an HTML file and then press `Alt+H`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.  Click on a diagnostic line, see that link highlighted in the source file, press `Alt+T` to open that URL in your browser.  If it's an HTTP link, press `Alt+M` to open the HTTPS equivalent of that URL in your browser.
 
 Tip: After you do Alt+H and get diagnostics, work on the problems from bottom (last diagnostic) to top (first diagnostic).  That way the line numbers in the diagnostics don't change as you delete or add lines in the source.
 
@@ -20,27 +20,32 @@ To change the key-combinations for this extension, open File / Preferences / Key
 ### Settings
 * checkInternalLinks: Check #name links to targets inside current file (default is true).
 * checkMailtoDestFormat: Check format of email addresses in mailto links (default is true).
+* dontCheckURLsThatStartWith: Don't check URLs that start with any sequence in this comma-separated list (default is "127.,192.,localhost,[::1],[FC00:,[FD00:").
 * localRoot: String prepended to links that start with "/" (default is ".").
 * maxParallelThreads: Maximum number of links to check in parallel (range is 1 to 20; default is 20).
 * processIdAttributeInAnyTag: #name link can be to any tag with ID attribute inside current file (default is true).
 * reportHTTPSAvailable: Report if HTTP links have HTTPS equivalents that work ? (default is [check and report] "as Information")
 * reportNonHandledSchemes: Report links with URI schemes not checked by the checker, such as FTP and Telnet (default is "as Information").
 * reportRedirect: Report links that get redirected (default is "as Warning").
-* timeout: Timeout (seconds) for accessing a link (range is 5 to 30; default is 12).
-* userAgent: User-Agent value used in Get requests (default is "Mozilla/5.0 Firefox/63.0").
+* timeout: Timeout (seconds) for accessing a link (range is 5 to 30; default is 15).
+* userAgent: User-Agent value used in Get requests (default is "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0").
 
 ### Limitations
 * Tag name and href/src/id attribute must be on the same line.
 * Doesn't know about comments; will find and check tags inside comments.
 * Checks "#name" links to targets in current file, but not in other local or remote files.
-* Written to match the behavior of HtmlHint, not browsers.  HtmlHint objects to uppercase in tag and attribute names, doesn't allow single-quotes instead of double-quotes.
 * Doesn't check EVERY detail of the email address spec in mailto links.  Just a cursory check.
 
 Note that checking for broken links is more of an art than a science. Some sites don't actually return 404, but send you to a landing page. For example, Azure.com works this way. You can go to https://Azure.com/foo/bar and it will happily redirect you to a sub-page of https://azure.microsoft.com/, with no 404 status returned. So take a status of "OK" with a grain of salt - you may not be arriving at the page you intend.
 
+Also, browsers seem to be more tolerant than the library used by this link-checker.  The link-checker will report a lot of certificate-errors and such that browsers mostly ignore.
+
+And checking is getting harder, with more URLs redirecting through GDPR-consent pages and such, or redirecting to an URL with a tracking parameter added, causing false positives.
+
 #### Quirks
 * If there are multiple identical tags with identical link-targets on same line (for example two Anchor tags with identical href targets), clicking on diagnostic for any of them takes you to first one in the source line.
 * Doesn't check ANY of the email address format after "?", as in "mailto:a@b.com?subject=xyz".
+* "://" is prepended to items in dontCheckURLsThatStartWith before matching; e.g. if you specify "localhost" the code searches for "://localhost" in URLs.
 
 ---
 
@@ -110,17 +115,26 @@ or
 * Added setting and code to check if HTTPS equivalent exists for HTTP address.
 * Added Alt+M to open current HTTP URL as an HTTPS URL in browser.
 
+### 1.4.0
+* Briefly tested IPv6 addresses to see that at least they don't cause anything to blow up.
+* Set default user-agent string to latest Firefox.
+* Added dontCheckURLsThatStartWith setting and code.
+* Increased default timeout to 15.
+
 ---
 
 ## Development
 ### To-Do list
+* A lot of code cleanup needed, move stuff into functions.
+* Bundle extension to make it smaller/faster ? https://code.visualstudio.com/api/working-with-extensions/bundling-extension
+* Can't really test IPv6 because my system and ISP have it turned off.
+* Allow single-quotes on attributes ?  I thought HTMLHint didn't allow them, so I didn't support them.
 * Don't check a link if it has rel="nofollow" ?  Probably should leave it as-is: check it.
 * Any way to do retries in axios ?  Apparently not.
 * Memory leaks ?  Doesn't seem to be any tool to check an extension for leaking.  Maybe not possible, since extensions are running inside a huge framework of Electron or Node or something.
 * Display a "busy" cursor ?  Can't.  Window.withProgress could put up a dialog, but then user would have to close the dialog manually every time, don't want that.  Doesn't seem to be a way to close that dialog programmatically.
 * Click on diagnostic, do Alt+T or Alt+M to browser, come back to VSCode, cursor is in filter field of diagnostics pane instead of in source file.  More convenient if in source file.  But seems to be no way to do it.
 * Multi-line tag (tag name and href/src attribute on different lines) silently ignored.  Would be a lot of work to deal with, given the simple way the code does parsing.
-* Remove need for local copy of node_modules tree during development ?  Seems to be standard.
 
 ### Development Environment
 I'm no expert on this stuff, maybe I'm doing some things stupidly.
@@ -143,6 +157,6 @@ I did:
 ---
 
 ## Privacy Policy
-This extension doesn't collect or store your identity or personal information in any way.  All it does is read the current editor window and do HTTP accesses of the links or send links to your browser.
+This extension doesn't collect, store or transmit your identity or personal information in any way.  All it does is read the current editor window, do existence-tests on local files, and send links to your browser.
 
 

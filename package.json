@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "1.3.0",
+	"version": "1.4.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -98,7 +98,7 @@
 				},
 				"linkcheckerhtml.timeout": {
 					"type": "number",
-					"default": 12,
+					"default": 15,
 					"description": "Timeout (seconds) for accessing a link (range is 5 to 30)."
 				},
 				"linkcheckerhtml.reportNonHandledSchemes": {
@@ -130,7 +130,7 @@
 				},
 				"linkcheckerhtml.userAgent": {
 					"type": "string",
-					"default": "Mozilla/5.0 Firefox/63.0",
+					"default": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0",
 					"description": "User-Agent value used in Get requests."
 				},
 				"linkcheckerhtml.checkInternalLinks": {
@@ -153,6 +153,11 @@
 							],
 					"default": "as Information",
 					"description": "Report if HTTP links have HTTPS equivalents that work ?"
+				},
+				"linkcheckerhtml.dontCheckURLsThatStartWith": {
+					"type": "string",
+					"default": "127.,192.,localhost,[::1],[FC00:,[FD00:",
+					"description": "Don't check URLs that start with any sequence in this comma-separated list."
 				}
 			}
 		}
