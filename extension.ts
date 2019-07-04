@@ -27,6 +27,7 @@ import path = require('path');
 // For checking internet URIs
 import {
 	AxiosPromise,
+	AxiosRequestConfig,
 	AxiosResponse,
 	CancelToken
 	} from 'axios';
@@ -49,6 +50,7 @@ var gStartingNLinks = 0;
 var gnTimeout = 15;	// seconds
 var gbCheckInternalLinks = true;
 var gbProcessIdAttributeInAnyTag = true;
+var gsAddExtensionToLocalURLsWithNone = "";
 var gbDone = true;
 var gbCancelled = false;
 var gLocalAnchorNames: Array<string> = null;
@@ -217,6 +219,8 @@ function generateLinkReport() {
 		gnTimeout = 30;
 	gbCheckInternalLinks = gConfiguration.checkInternalLinks;
 	gbProcessIdAttributeInAnyTag = gConfiguration.processIdAttributeInAnyTag;
+	gsAddExtensionToLocalURLsWithNone = gConfiguration.addExtensionToLocalURLsWithNone;
+	//gsAddExtensionToLocalURLsWithNone = "html";		// TEST ONLY
 
 	gLocalAnchorNames = new Array<string>();
 
@@ -269,7 +273,10 @@ function throttleActions(links, limit): Promise<any> {
 		if (gbCancelled)
 			return null;
 
-		myStatusBarItem.text = `Checking ${gStartingNLinks} links, ${links.length-i} more to do ...`;
+		if (i < links.length)
+			myStatusBarItem.text = `Checking ${gStartingNLinks} links, ${links.length-i} more to do ...`;
+		else
+			myStatusBarItem.text = `Checking ${gStartingNLinks} links, waiting for last few to complete ...`;
 		myStatusBarItem.show();
 		
 		if (i < links.length) {
@@ -323,7 +330,7 @@ function doALink(link): Promise<null> {
 		let sReportRedirects = gConfiguration.reportRedirects;
 		let sUserAgent = gConfiguration.userAgent;
 		let sReportHTTPSAvailable = gConfiguration.reportHTTPSAvailable;
-		//gOutputChannel.appendLine(`doALink: sReportRedirects ${sReportRedirects}, sUserAgent '${sUserAgent}', sReportHTTPSAvailable '${sReportHTTPSAvailable}'`);
+		//gOutputChannel.appendLine(`doALink: sReportRedirects ${sReportRedirects}, sUserAgent '${sUserAgent}', sReportHTTPSAvailable '${sReportHTTPSAvailable}', gsAddExtensionToLocalURLsWithNone '${gsAddExtensionToLocalURLsWithNone}'`);
 		var address = link.address;
 		if (link.bDoHTTPSForm)
 			address = link.address.slice(0, 4) + "s" + link.address.slice(4);
@@ -357,6 +364,9 @@ function doALink(link): Promise<null> {
 				// else HTTPS form of HTTP link, and it's not found, don't report
 			} else if ((sReportRedirects[0]!='D') && ((response.status > 300) && (response.status < 400))) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} redirected.`);
+				// seems to be no way to get any useful info about the redirect result
+				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${response.config.url}`);
+				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${response.config.headers}`);
 				if (!link.bDoHTTPSForm) {
 					// HTTP form of link, and it redirected
 					var severity:DiagnosticSeverity = DiagnosticSeverity.Information;
@@ -506,17 +516,28 @@ function doALink(link): Promise<null> {
 				// The `.split('#')[0]` at the end is so that relative links that also reference an anchor in the document will work with file checking.
 				var fullPath = path.resolve(currentWorkingDirectory, sAddress).split('#')[0];
 				//gOutputChannel.appendLine(`doALink: link.address '${link.address}' and sAddress '${sAddress}' and currentWorkingDirectory '${currentWorkingDirectory}' gives fullPath '${fullPath}'`);
+				if (gsAddExtensionToLocalURLsWithNone.length > 0) {
+					// if path does not end with a filename extension, append "." and gsAddExtensionToLocalURLsWithNone
+					try {
+						var extension = fullPath.match(/[^/\.]\.([^/\.]+)$/);
+						//gOutputChannel.appendLine(`doALink: fullPath '${fullPath}' has extension '${extension[1]}'`);
+					} catch (error) {
+						//gOutputChannel.appendLine(`doALink: fullPath '${fullPath}' has no extension`);
+						fullPath = fullPath + "." + gsAddExtensionToLocalURLsWithNone;
+						//gOutputChannel.appendLine(`doALink: new fullPath '${fullPath}'`);
+					}
+				}
 				// Check if the file exists and log appropriately
 				if (fs.existsSync(fullPath)) {
-					//gOutputChannel.appendLine(`doALink: local file ${sAddress} on line ${lineNumber} exists.`);
+					//gOutputChannel.appendLine(`doALink: local file ${fullPath} on line ${lineNumber} exists.`);
 				} else {
-					//gOutputChannel.appendLine(`doALink: local file ${sAddress} on line ${lineNumber} does not exist.`);
+					//gOutputChannel.appendLine(`doALink: local file ${fullPath} on line ${lineNumber} does not exist.`);
 					addDiagnostic(
 								lineNumber,
 								link.lineText.text.indexOf(link.address),
 								link.address.length,
 								DiagnosticSeverity.Error,
-								`Local file '${sAddress}'  does not exist.`
+								`Local file '${fullPath}'  does not exist.`
 								);
 				}
 			} catch (error) {

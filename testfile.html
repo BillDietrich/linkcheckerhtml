@@ -11,8 +11,10 @@ Local files:
 <a id="validid">&nbsp;</a>
 <div id="validid2">&nbsp;</div>
 Some random text with <a href="./to/a/missing/file.html">a link to a missing local file</a>.
+Some random text with <a href="./to/a/missing/file">a link to a missing local file</a>.
 <br /><br />
 Some random text with <a href="./testfile.html">a link to a valid local file</a>.
+Some random text with <a href="./testfile">same valid local file with filename extension added by VSCode extension</a>.
 <br /><br />
 This next one doesn't get caught:
 More random text with <a href="./testfile.html#nosuchname">a link to a valid local file but invalid name inside</a>.
@@ -20,6 +22,7 @@ More random text with <a href="./testfile.html#nosuchname">a link to a valid loc
 Another <a href="#nosuchname">link to this file but invalid name inside</a>.
 <br /><br />
 More random text with <a href="./testfile.html#validname">a link to a valid local file and valid name inside</a>.
+More random text with <a href="./testfile#validname">a link to a valid local file and valid name inside</a>.
 <br /><br />
 More random text with <a href="#validname">a link to a current file and valid name</a>.
 Similar <a href="#validid">a link to a current file and valid id</a>.

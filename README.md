@@ -2,7 +2,7 @@
 VSCode extension that checks for broken links in HTML files.
 
 ## Functionality
-Checks for broken links in anchor-href, link-href, img-src, and script-src tags in current HTML document. It checks broken HTTP/HTTPS links by trying to access them on the internet, and checks relative links (../folder/file.html) by checking if the file exists on the local file system.
+Checks for broken links in anchor-href, link-href, img-src, and script-src tags in current HTML document. It checks HTTP/HTTPS links by trying to access them on the internet, and checks relative links (../folder/file.html) by checking if the file exists on the local file system.
 
 Also checks for badly-formatted mailto links, and duplicate local anchors (anchor-name, anchor-id).
 
@@ -11,6 +11,8 @@ Also checks for working HTTPS equivalents of HTTP links.
 ## Use
 Open an editor window on an HTML file and then press `Alt+H`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.  Click on a diagnostic line, see that link highlighted in the source file, press `Alt+T` to open that URL in your browser.  If it's an HTTP link, press `Alt+M` to open the HTTPS equivalent of that URL in your browser.
 
+![Using the extension](UsingTheExtension.png "Using the extension")
+
 Tip: After you do Alt+H and get diagnostics, work on the problems from bottom (last diagnostic) to top (first diagnostic).  That way the line numbers in the diagnostics don't change as you delete or add lines in the source.
 
 To see/change settings for this extension, open Settings (Ctrl+,) / Extensions / HTML link checker.
@@ -18,6 +20,7 @@ To see/change settings for this extension, open Settings (Ctrl+,) / Extensions /
 To change the key-combinations for this extension, open File / Preferences / Keyboard Shortcuts and search for Alt+H or Alt+T or Alt+M.
 
 ### Settings
+* addExtensionToLocalURLsWithNone: If a local file URL has no extension, add this extension to the filename before checking (default is ""; don't include "." in the setting).
 * checkInternalLinks: Check #name links to targets inside current file (default is true).
 * checkMailtoDestFormat: Check format of email addresses in mailto links (default is true).
 * dontCheckURLsThatStartWith: Don't check URLs that start with any sequence in this comma-separated list (default is "127.,192.,localhost,[::1],[FC00:,[FD00:").
@@ -121,16 +124,24 @@ or
 * Added dontCheckURLsThatStartWith setting and code.
 * Increased default timeout to 15.
 
+### 1.5.0
+* Added "Using the extension" image.
+* Better message when 0 files left to do.
+* Added addExtensionToLocalURLsWithNone setting and code.
+
 ---
 
 ## Development
 ### To-Do list
+* Create automated tests.
+* Add Alt+L command to clear out diagnostics for current file, or for all files ?  Is there a way to do it in VSCode UI already ?
+* Any way to note links that redirect to same link with a tracking parameter added ?  Answer seems to be no, Axios gives no way to get the URL that we were redirected to.
 * A lot of code cleanup needed, move stuff into functions.
 * Bundle extension to make it smaller/faster ? https://code.visualstudio.com/api/working-with-extensions/bundling-extension
 * Can't really test IPv6 because my system and ISP have it turned off.
 * Allow single-quotes on attributes ?  I thought HTMLHint didn't allow them, so I didn't support them.
 * Don't check a link if it has rel="nofollow" ?  Probably should leave it as-is: check it.
-* Any way to do retries in axios ?  Apparently not.
+* Any way to do retries inside axios ?  Apparently not.
 * Memory leaks ?  Doesn't seem to be any tool to check an extension for leaking.  Maybe not possible, since extensions are running inside a huge framework of Electron or Node or something.
 * Display a "busy" cursor ?  Can't.  Window.withProgress could put up a dialog, but then user would have to close the dialog manually every time, don't want that.  Doesn't seem to be a way to close that dialog programmatically.
 * Click on diagnostic, do Alt+T or Alt+M to browser, come back to VSCode, cursor is in filter field of diagnostics pane instead of in source file.  More convenient if in source file.  But seems to be no way to do it.
@@ -157,6 +168,6 @@ I did:
 ---
 
 ## Privacy Policy
-This extension doesn't collect, store or transmit your identity or personal information in any way.  All it does is read the current editor window, do existence-tests on local files, and send links to your browser.
+This extension doesn't collect, store or transmit your identity or personal information in any way.  All it does is read the current editor window, do existence-tests on local files, open links to internet sites, and send internet links to your browser.
 
 

@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "1.4.0",
+	"version": "1.5.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -158,6 +158,11 @@
 					"type": "string",
 					"default": "127.,192.,localhost,[::1],[FC00:,[FD00:",
 					"description": "Don't check URLs that start with any sequence in this comma-separated list."
+				},
+				"linkcheckerhtml.addExtensionToLocalURLsWithNone": {
+					"type": "string",
+					"default": "",
+					"description": "If a local file URL has no extension, add this extension to the filename before checking."
 				}
 			}
 		}
