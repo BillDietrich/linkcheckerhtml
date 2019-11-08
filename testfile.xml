@@ -1,0 +1,6 @@
+﻿
+<?xml version="1.0" encoding="UTF-8"?>
+
+Should be checked: <homepages xlink:href="nosuchfile.html"></homepages> 
+
+Not checked: <speciallink>nosuchfile.html</speciallink>

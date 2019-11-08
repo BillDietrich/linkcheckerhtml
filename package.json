@@ -1,12 +1,12 @@
 {
 	"name": "linkcheckerhtml",
-	"displayName": "HTML link checker",
-	"description": "Alt+H checks for broken links in HTML file.  Alt+T sends currently-selected URL to browser.  Alt+M sends HTTPS version of currently-selected HTTP URL to browser.  Alt+L clears diagnostic messages.",
+	"displayName": "HTML / XML / RSS link checker",
+	"description": "Alt+H checks for broken links in HTML, XML, or RSS file.  Alt+T sends currently-selected URL to browser.  Alt+M sends HTTPS version of currently-selected HTTP URL to browser.  Alt+L clears diagnostic messages.",
 	"author": {
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "1.7.0",
+	"version": "2.0.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -28,7 +28,8 @@
 	],
 	"keywords": [
 		"HTML",
-		"find",
+		"XML",
+		"RSS",
 		"broken",
 		"link"
 	],
@@ -36,7 +37,9 @@
 		"vscode": "^1.29.0"
 	},
 	"activationEvents": [
-		"onLanguage:html"
+		"onLanguage:html",
+		"onLanguage:xml",
+		"onLanguage:rss"
 	],
 	"main": "./out/extension",
 	"scripts": {
@@ -93,7 +96,7 @@
 		"configuration": [
 			{
 				"type": "object",
-				"title": "HTML link checker",
+				"title": "HTML / XML / RSS link checker",
 				"properties": {
 					"linkcheckerhtml.checkMailtoDestFormat": {
 					"type": "boolean",

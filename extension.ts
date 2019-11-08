@@ -159,6 +159,8 @@ function generateLinkReport() {
 
     // Get the current document
     gDocument = window.activeTextEditor.document;
+    //gOutputChannel.appendLine(`generateLinkReport: gDocument.fileName "${gDocument.fileName}"`);
+    //gOutputChannel.appendLine(`generateLinkReport: gDocument.languageId "${gDocument.languageId}"`);
 
 	myStatusBarItem.text = `Checking for broken links ...`;
 	myStatusBarItem.show();
@@ -236,7 +238,12 @@ function generateLinkReport() {
 	gLocalAnchorNames = new Array<string>();
 
     // Get all links in the document
-    let p1 = getLinks(gDocument);
+    var p1 = null;
+	switch (gDocument.languageId) {
+		case 'html': p1 = getHtmlLinks(gDocument); break;
+		case 'xml': p1 = getXmlRssLinks(gDocument); break;
+		// apparently RSS gets reported as XML
+	}
 	p1.then((links) => {
 		// callback function for the "success" branch of the p1 Promise
 		// Promise resolved now, so we're in a different context than before
@@ -565,8 +572,8 @@ function doALink(link): Promise<null> {
 
 
 // Parse the HTML Anchor links out of the document
-function getLinks(document: TextDocument): Promise<Link[]> {
-    //gOutputChannel.appendLine(`getLinks called, document.uri '${document.uri}'`);
+function getHtmlLinks(document: TextDocument): Promise<Link[]> {
+    //gOutputChannel.appendLine(`getHtmlLinks called, document.uri '${document.uri}'`);
     // Return a promise, since this might take a while for large documents
     return new Promise<Link[]>((resolve, reject) => {
         // Create arrays to hold links as we parse them out
@@ -575,7 +582,7 @@ function getLinks(document: TextDocument): Promise<Link[]> {
         let lineCount = document.lineCount;
 
 		let sReportHTTPSAvailable = gConfiguration.reportHTTPSAvailable;
-	    //gOutputChannel.appendLine(`getLinks: sReportHTTPSAvailable '${sReportHTTPSAvailable}'`);
+	    //gOutputChannel.appendLine(`getHtmlLinks: sReportHTTPSAvailable '${sReportHTTPSAvailable}'`);
 		// as Error, as Warning, as Information, Don't check and report
 		var bReportHTTPSAvailable = false;
 		switch (sReportHTTPSAvailable[3]) {
@@ -585,12 +592,12 @@ function getLinks(document: TextDocument): Promise<Link[]> {
 					bReportHTTPSAvailable = true;
 					break;
 		}
-	    //gOutputChannel.appendLine(`getLinks: bReportHTTPSAvailable ${bReportHTTPSAvailable}`);
+	    //gOutputChannel.appendLine(`getHtmlLinks: bReportHTTPSAvailable ${bReportHTTPSAvailable}`);
 		let sDontCheckCSL = gConfiguration.dontCheckURLsThatStartWith;
-	    //gOutputChannel.appendLine(`getLinks: sDontCheckCSL '${sDontCheckCSL}'`);
+	    //gOutputChannel.appendLine(`getHtmlLinks: sDontCheckCSL '${sDontCheckCSL}'`);
 		gaDontCheck = new Array<string>();
 		var dontchecks = sDontCheckCSL.match(/[^\,]+/g);
-	    //gOutputChannel.appendLine(`getLinks: dontchecks '${dontchecks}'`);
+	    //gOutputChannel.appendLine(`getHtmlLinks: dontchecks '${dontchecks}'`);
 		if (dontchecks) {
 			// Iterate over the values found in the comma-separated list
 			for (let i = 0; i< dontchecks.length; i++) {
@@ -601,9 +608,9 @@ function getLinks(document: TextDocument): Promise<Link[]> {
 				gaDontCheck.push(sValue);
 			}
 		}
-	    //gOutputChannel.appendLine(`getLinks: gaDontCheck[0] ${gaDontCheck[0]}`);
-	    //gOutputChannel.appendLine(`getLinks: gaDontCheck[1] ${gaDontCheck[1]}`);
-	    //gOutputChannel.appendLine(`getLinks: gaDontCheck[2] ${gaDontCheck[2]}`);
+	    //gOutputChannel.appendLine(`getHtmlLinks: gaDontCheck[0] ${gaDontCheck[0]}`);
+	    //gOutputChannel.appendLine(`getHtmlLinks: gaDontCheck[1] ${gaDontCheck[1]}`);
+	    //gOutputChannel.appendLine(`getHtmlLinks: gaDontCheck[2] ${gaDontCheck[2]}`);
         
         //Loop over the lines in a document
         for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
@@ -805,7 +812,221 @@ function getLinks(document: TextDocument): Promise<Link[]> {
                 }
             }
         }
-	    //gOutputChannel.appendLine(`getLinks promise returning, linksToReturn.length ${linksToReturn.length}`);
+	    //gOutputChannel.appendLine(`getHtmlLinks promise returning, linksToReturn.length ${linksToReturn.length}`);
+        if (linksToReturn.length > 0) {
+            //Return the populated array, which completes the promise.
+            resolve(linksToReturn);
+        } else {
+            //Reject, because we found no links
+            reject;
+        }
+    }).catch();
+}
+
+
+
+// Parse the links out of and XML or RSS document.
+//
+// It's very permissive, because XML doesn't really define standard tag and
+// attribute names.  So it allows known stuff from RSS, and likely stuff
+// that could be in XML.
+function getXmlRssLinks(document: TextDocument): Promise<Link[]> {
+    //gOutputChannel.appendLine(`getXmlRssLinks called, document.uri '${document.uri}'`);
+    // Return a promise, since this might take a while for large documents
+    return new Promise<Link[]>((resolve, reject) => {
+        // Create arrays to hold links as we parse them out
+        let linksToReturn = new Array<Link>();
+        // Get lines in the document
+        let lineCount = document.lineCount;
+
+		let sReportHTTPSAvailable = gConfiguration.reportHTTPSAvailable;
+	    //gOutputChannel.appendLine(`getXmlRssLinks: sReportHTTPSAvailable '${sReportHTTPSAvailable}'`);
+		// as Error, as Warning, as Information, Don't check and report
+		var bReportHTTPSAvailable = false;
+		switch (sReportHTTPSAvailable[3]) {
+			case 'E':
+			case 'W':
+			case 'I':
+					bReportHTTPSAvailable = true;
+					break;
+		}
+	    //gOutputChannel.appendLine(`getXmlRssLinks: bReportHTTPSAvailable ${bReportHTTPSAvailable}`);
+		let sDontCheckCSL = gConfiguration.dontCheckURLsThatStartWith;
+	    //gOutputChannel.appendLine(`getXmlRssLinks: sDontCheckCSL '${sDontCheckCSL}'`);
+		gaDontCheck = new Array<string>();
+		var dontchecks = sDontCheckCSL.match(/[^\,]+/g);
+	    //gOutputChannel.appendLine(`getXmlRssLinks: dontchecks '${dontchecks}'`);
+		if (dontchecks) {
+			// Iterate over the values found in the comma-separated list
+			for (let i = 0; i< dontchecks.length; i++) {
+				// Get the value
+				var dontcheck = dontchecks[i].match(/[^\,]+/);
+				let sValue = dontcheck[0];
+				// Push it to the array
+				gaDontCheck.push(sValue);
+			}
+		}
+	    //gOutputChannel.appendLine(`getXmlRssLinks: gaDontCheck[0] ${gaDontCheck[0]}`);
+	    //gOutputChannel.appendLine(`getXmlRssLinks: gaDontCheck[1] ${gaDontCheck[1]}`);
+	    //gOutputChannel.appendLine(`getXmlRssLinks: gaDontCheck[2] ${gaDontCheck[2]}`);
+        
+        //Loop over the lines in a document
+        for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
+            // Get the text for the current line
+            let lineText = document.lineAt(lineNumber);
+
+            // Are there links?
+
+			// Atom-href link looks like: <atom:link href="urlhere" ... >
+			// XLink-href link looks like: <... xlink:href="urlhere" ... >
+			// just accept any kind of href="urlhere"
+            var links = lineText.text.match(/href="[^"]*"/g);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/href="([^"]*)"/);
+                    let address = link[1];
+					if (!DontCheck(address)) {
+						// Push it to the array
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: false
+						});
+						if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
+					}
+                }
+            }
+
+			// Enclosure-url link looks like: <enclosure url="urlhere" ... >
+			// just accept any kind of url="urlhere"
+            var links = lineText.text.match(/url="[^"]*"/g);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/url="([^"]*)"/);
+                    let address = link[1];
+					if (!DontCheck(address)) {
+						// Push it to the array
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: false
+						});
+						if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
+					}
+                }
+            }
+
+			// Link tag looks like: <link>urlhere</link>
+            var links = lineText.text.match(/<link>.*<\/link>/g);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/<link>(.*)<\/link>/);
+                    let address = link[1];
+					if (!DontCheck(address)) {
+						// Push it to the array
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: false
+						});
+						if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
+					}
+                }
+            }
+
+			// Url tag looks like: <url>urlhere</url>
+            var links = lineText.text.match(/<url>.*<\/url>/g);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/<url>(.*)<\/url>/);
+                    let address = link[1];
+					if (!DontCheck(address)) {
+						// Push it to the array
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: false
+						});
+						if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
+					}
+                }
+            }
+
+			// Guid tag looks like: <guid>urlhere</guid>
+            var links = lineText.text.match(/<guid>.*<\/guid>/g);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/<guid>(.*)<\/guid>/);
+                    let address = link[1];
+					if (!DontCheck(address)) {
+						// Push it to the array
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: false
+						});
+						if (bReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
+					}
+                }
+            }
+			
+		}
+	    //gOutputChannel.appendLine(`getXmlRssLinks promise returning, linksToReturn.length ${linksToReturn.length}`);
         if (linksToReturn.length > 0) {
             //Return the populated array, which completes the promise.
             resolve(linksToReturn);

@@ -117,5 +117,13 @@ img-src good: <img src="./testfile.html" /> and img-src bad: <img src="./nofile.
 Link starting with "/": <script src="/testfile.html">script; src; good;</script>
 Link starting with "/": <script src="/nosuchfile.html">script; src; bad;</script>
 
+
+<br /><br />
+Things from XML and RSS that should not be checked in an HTML file:
+<link>nosuchfile.html</link>
+<picture url="nosuchfile.html" /> 
+<homepage xlink:type="simple" xlink:href="nosuchfile.html">any name here</homepage>
+
+
 </body>
 </html>
