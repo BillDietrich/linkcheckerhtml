@@ -85,6 +85,9 @@ export function activate(extensionContext:ExtensionContext) {
     let disposable3 = commands.registerCommand('extension.openURLasHTTPS', openURLasHTTPS);
 	extensionContext.subscriptions.push(disposable3);
 
+    let disposable4 = commands.registerCommand('extension.clearDiagnostics', clearDiagnostics);
+	extensionContext.subscriptions.push(disposable4);
+
     //gOutputChannel.appendLine(`activate: finished`);
 }
 
@@ -136,6 +139,16 @@ export function openURLasHTTPS() {
 		commands.executeCommand('vscode.open', Uri.parse(sURLasHTTPS));	// ignores local files
 		//gOutputChannel.appendLine(`openURLasHTTPS: returning`);
 	}
+}
+
+
+// clear all diagnostics belonging to this extension
+export function clearDiagnostics() {
+    //gOutputChannel.appendLine(`clearDiagnostics: called`);
+
+	// should free old array ?  or dispose() on the collection ?
+	gDiagnosticsArray = new Array<Diagnostic>();
+	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 }
 
 
@@ -196,9 +209,7 @@ function generateLinkReport() {
 	}
 */
 
-	// should free old array ?
-	gDiagnosticsArray = new Array<Diagnostic>();
-	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
+	clearDiagnostics();
 
 /*
 	var diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "message", DiagnosticSeverity.Error);

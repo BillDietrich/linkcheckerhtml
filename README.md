@@ -11,7 +11,7 @@ Also checks for working HTTPS equivalents of HTTP links.
 ## Use
 Open an editor window on an HTML file and then press `Alt+H`.  Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.  Click on a diagnostic line, see that link highlighted in the source file, press `Alt+T` to open that URL in your browser.  If it's an HTTP link, press `Alt+M` to open the HTTPS equivalent of that URL in your browser.
 
-![Using the extension](UsingTheExtension.png "Using the extension")
+![Using the extension](UsingTheExtension.jpg "Using the extension")
 
 Tip: After you do Alt+H and get diagnostics, work on the problems from bottom (last diagnostic) to top (first diagnostic).  That way the line numbers in the diagnostics don't change as you delete or add lines in the source.
 
@@ -129,12 +129,15 @@ or
 * Better message when 0 files left to do.
 * Added addExtensionToLocalURLsWithNone setting and code.
 
+### 1.6.0
+* Added Alt+L to clear all diagnostics belonging to this extension.
+* Changed my email address.
+
 ---
 
 ## Development
 ### To-Do list
 * Create automated tests.
-* Add Alt+L command to clear out diagnostics for current file, or for all files ?  Is there a way to do it in VSCode UI already ?
 * Any way to note links that redirect to same link with a tracking parameter added ?  Answer seems to be no, Axios gives no way to get the URL that we were redirected to.
 * A lot of code cleanup needed, move stuff into functions.
 * Bundle extension to make it smaller/faster ? https://code.visualstudio.com/api/working-with-extensions/bundling-extension
@@ -151,10 +154,10 @@ or
 I'm no expert on this stuff, maybe I'm doing some things stupidly.
 
 I used:
-* Linux Mint was 19 now 19.1
-* VSCode was 1.29.1 (which said Node.js 8.9.3) now 1.33.0-exploration (which says Node.js: 10.11.0)
+* Linux Mint was 19 now 19.2
+* VSCode was 1.29.1 (which said Node.js 8.9.3) now 1.39.0-exploration (which says Node.js: 12.4.0)
 * node was 8.10.0 now 10.15.3
-* npm was 3.5.2 now 6.4.1
+* npm was 3.5.2 now 6.9.0
 * axios
 * path
 * fs

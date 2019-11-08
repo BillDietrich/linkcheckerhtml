@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "1.5.0",
+	"version": "1.6.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -15,7 +15,7 @@
 	"license": "SEE LICENSE IN LICENSE.md",
 	"bugs": {
 		"url": "https://github.com/BillDietrich/linkcheckerhtml/issues",
-		"email": "bill_dietrich@protonmail.com"
+		"email": "gith4@billdietrich.me"
 	},
 	"homepage": "https://github.com/BillDietrich/linkcheckerhtml/blob/master/README.md",
 	"repository": {
@@ -65,6 +65,11 @@
 				"title": "Open HTTPS equivalent of an HTTP URL in the browser",
 				"category": "HTML",
 				"when": "editorHasSelection"
+			},
+			{
+				"command": "extension.clearDiagnostics",
+				"title": "Clear all diagnostics belonging to this extension",
+				"category": "HTML"
 			}
 		],
 		"keybindings": [
@@ -79,6 +84,10 @@
 			{
 				"command": "extension.openURLasHTTPS",
 				"key": "Alt+M"
+			},
+			{
+				"command": "extension.clearDiagnostics",
+				"key": "Alt+L"
 			}
 		],
 		"configuration": [
