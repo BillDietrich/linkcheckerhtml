@@ -1,15 +1,15 @@
 # HTML / XML / RSS link checker
-VSCode extension that checks for broken links in HTML, XML, and RSS files.
+VSCode extension that checks for broken links in an HTML, XML, or RSS file.
 
 
 ## Functionality
-Checks for broken links in anchor-href, link-href, img-src, and script-src tags in current HTML document. It checks HTTP/HTTPS links by trying to access them on the internet, and checks relative links (../folder/file.html) by checking if the file exists on the local file system.
+Checks for broken links in anchor-href, link-href, img-src, and script-src tags in currently-open HTML file. It checks HTTP/HTTPS links by trying to access them on the internet, and checks relative links (../folder/file.html) by checking if the file exists on the local file system.
 
 Also checks for badly-formatted mailto links, and duplicate local anchors (anchor-name, anchor-id).
 
 Also checks for working HTTPS equivalents of HTTP links.
 
-Also checks for broken links in current XML or RSS document.
+Also checks for broken links in currently-open XML or RSS file.
 
 
 ## Use
@@ -161,14 +161,18 @@ or
 ### 2.0.0
 * Added support for XML and RSS files.
 
+### 2.1.0
+* Changed to Axios 0.19.0.
+* On redirected link, give new URL.
+
 ---
 
 
 ## Development
 ### To-Do list
+* Don't report link that redirects to same link with a tracking parameter added.
 * File with zero links leaves status dangling ?
 * Create automated tests.
-* Any way to note links that redirect to same link with a tracking parameter added ?  Answer seems to be no, Axios gives no way to get the URL that we were redirected to.
 * A lot of code cleanup needed, move stuff into functions.
 * Extension really is supposed to remove each diagnostic line after the corresponding source line is edited.
 * Bundle extension to make it smaller/faster ? https://code.visualstudio.com/api/working-with-extensions/bundling-extension

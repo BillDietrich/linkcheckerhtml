@@ -1,12 +1,12 @@
 {
 	"name": "linkcheckerhtml",
 	"displayName": "HTML / XML / RSS link checker",
-	"description": "Alt+H checks for broken links in HTML, XML, or RSS file.  Alt+T sends currently-selected URL to browser.  Alt+M sends HTTPS version of currently-selected HTTP URL to browser.  Alt+L clears diagnostic messages.",
+	"description": "Alt+H checks for broken links in an HTML, XML, or RSS file.  Alt+T sends currently-selected URL to browser.  Alt+M sends HTTPS version of currently-selected HTTP URL to browser.  Alt+L clears diagnostic messages.",
 	"author": {
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -99,86 +99,86 @@
 				"title": "HTML / XML / RSS link checker",
 				"properties": {
 					"linkcheckerhtml.checkMailtoDestFormat": {
-					"type": "boolean",
-					"default": true,
-					"description": "Check format of email addresses in mailto links."
-				},
-				"linkcheckerhtml.maxParallelThreads": {
-					"type": "number",
-					"default": 20,
-					"description": "Maximum number of links to check in parallel (range is 1 to 20)."
-				},
-				"linkcheckerhtml.timeout": {
-					"type": "number",
-					"default": 15,
-					"description": "Timeout (seconds) for accessing a link (range is 5 to 30)."
-				},
-				"linkcheckerhtml.reportNonHandledSchemes": {
-					"type": "string",
-					"enum": [
+						"type": "boolean",
+						"default": true,
+						"description": "Check format of email addresses in mailto links."
+					},
+					"linkcheckerhtml.maxParallelThreads": {
+						"type": "number",
+						"default": 20,
+						"description": "Maximum number of links to check in parallel (range is 1 to 20)."
+					},
+					"linkcheckerhtml.timeout": {
+						"type": "number",
+						"default": 15,
+						"description": "Timeout (seconds) for accessing a link (range is 5 to 30)."
+					},
+					"linkcheckerhtml.reportNonHandledSchemes": {
+						"type": "string",
+						"enum": [
 							"as Error",
 							"as Warning",
 							"as Information",
 							"Don't report"
-							],
-					"default": "as Information",
-					"description": "Report links with URI schemes not checked by the checker, such as FTP and Telnet ?"
-				},
-				"linkcheckerhtml.reportRedirects": {
-					"type": "string",
-					"enum": [
+						],
+						"default": "as Information",
+						"description": "Report links with URI schemes not checked by the checker, such as FTP and Telnet ?"
+					},
+					"linkcheckerhtml.reportRedirects": {
+						"type": "string",
+						"enum": [
 							"as Error",
 							"as Warning",
 							"as Information",
 							"Don't report"
-							],
-					"default": "as Warning",
-					"description": "Report links that get redirected ?"
-				},
-				"linkcheckerhtml.localRoot": {
-					"type": "string",
-					"default": ".",
-					"description": "String prepended to links that start with '/'."
-				},
-				"linkcheckerhtml.userAgent": {
-					"type": "string",
-					"default": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0",
-					"description": "User-Agent value used in Get requests."
-				},
-				"linkcheckerhtml.checkInternalLinks": {
-					"type": "boolean",
-					"default": true,
-					"description": "Check #name links to targets inside current file."
-				},
-				"linkcheckerhtml.processIdAttributeInAnyTag": {
-					"type": "boolean",
-					"default": true,
-					"description": "#name link can be to any tag with ID attribute inside current file."
-				},
-				"linkcheckerhtml.reportHTTPSAvailable": {
-					"type": "string",
-					"enum": [
+						],
+						"default": "as Warning",
+						"description": "Report links that get redirected ?"
+					},
+					"linkcheckerhtml.localRoot": {
+						"type": "string",
+						"default": ".",
+						"description": "String prepended to links that start with '/'."
+					},
+					"linkcheckerhtml.userAgent": {
+						"type": "string",
+						"default": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0",
+						"description": "User-Agent value used in Get requests."
+					},
+					"linkcheckerhtml.checkInternalLinks": {
+						"type": "boolean",
+						"default": true,
+						"description": "Check #name links to targets inside current file."
+					},
+					"linkcheckerhtml.processIdAttributeInAnyTag": {
+						"type": "boolean",
+						"default": true,
+						"description": "#name link can be to any tag with ID attribute inside current file."
+					},
+					"linkcheckerhtml.reportHTTPSAvailable": {
+						"type": "string",
+						"enum": [
 							"as Error",
 							"as Warning",
 							"as Information",
 							"Don't check for HTTPS"
-							],
-					"default": "as Information",
-					"description": "Report if HTTP links have HTTPS equivalents that work ?"
-				},
-				"linkcheckerhtml.dontCheckURLsThatStartWith": {
-					"type": "string",
-					"default": "127.,192.,localhost,[::1],[FC00:,[FD00:",
-					"description": "Don't check URLs that start with any sequence in this comma-separated list."
-				},
-				"linkcheckerhtml.addExtensionToLocalURLsWithNone": {
-					"type": "string",
-					"default": "",
-					"description": "If a local file URL has no extension, add this extension to the filename before checking."
+						],
+						"default": "as Information",
+						"description": "Report if HTTP links have HTTPS equivalents that work ?"
+					},
+					"linkcheckerhtml.dontCheckURLsThatStartWith": {
+						"type": "string",
+						"default": "127.,192.,localhost,[::1],[FC00:,[FD00:",
+						"description": "Don't check URLs that start with any sequence in this comma-separated list."
+					},
+					"linkcheckerhtml.addExtensionToLocalURLsWithNone": {
+						"type": "string",
+						"default": "",
+						"description": "If a local file URL has no extension, add this extension to the filename before checking."
+					}
 				}
 			}
-		}
-	]
+		]
 	},
 	"devDependencies": {
 		"vscode": "*",
@@ -186,8 +186,9 @@
 		"@types/node": "^8.10.25"
 	},
 	"dependencies": {
-		"axios": "^0.18.0",
+		"axios": "^0.19.0",
 		"fs": "^0.0.1-security",
-		"path": "^0.12.7"
+		"path": "^0.12.7",
+		"vsce": "^1.70.0"
 	}
 }

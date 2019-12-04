@@ -1,3 +1,5 @@
+// extension.ts
+
 // Some things from 'vscode', which contains the VS Code extensibility API
 import {
     workspace,
@@ -24,7 +26,10 @@ import {
 import fs = require('fs');
 // For checking relative URIs against the local file system
 import path = require('path');
-// For checking internet URIs
+
+// For accessing internet URIs
+// https://www.npmjs.com/package/axios
+// https://github.com/axios/axios
 import {
 	AxiosPromise,
 	AxiosRequestConfig,
@@ -364,7 +369,14 @@ function doALink(link): Promise<null> {
 			(response) =>
 		{
 			// callback function for the "result" branch of the axios Promise
-			//gOutputChannel.appendLine(`doALink.axiosPromise.then: got response for ${response.request}: ${response.status} (${response.statusText})`);
+			//gOutputChannel.appendLine(`doALink.axiosPromise.then: got response for url ${response.config.url}: ${response.status} (${response.statusText})`);
+			//  JSON.stringify(response.request) gives circularity error
+			////gOutputChannel.appendLine(`doALink.axiosPromise.then: response.config ${JSON.stringify(response.config)}`);
+			////gOutputChannel.appendLine(`doALink.axiosPromise.then: response.headers ${JSON.stringify(response.headers)}`);
+			////gOutputChannel.appendLine(`doALink.axiosPromise.then: response.data ${JSON.stringify(response.data)}`);
+			//if (response.status === 301) {
+			//	//gOutputChannel.appendLine(`doALink.axiosPromise.then: redirected to response.headers.location ${JSON.stringify(response.headers.location)}`);
+			//}
 			let sReportRedirects = gConfiguration.reportRedirects;
 			// as Error, as Warning, as Information, Don't report
 			if ((response.status > 400) && (response.status < 600)) {
@@ -382,7 +394,7 @@ function doALink(link): Promise<null> {
 				// else HTTPS form of HTTP link, and it's not found, don't report
 			} else if ((sReportRedirects[0]!='D') && ((response.status > 300) && (response.status < 400))) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} redirected.`);
-				// seems to be no way to get any useful info about the redirect result
+				// redirected to response.headers.location
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${response.config.url}`);
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${response.config.headers}`);
 				if (!link.bDoHTTPSForm) {
@@ -398,7 +410,7 @@ function doALink(link): Promise<null> {
 								link.lineText.text.indexOf(link.address),
 								link.address.length,
 								severity,
-								`'${link.address}' redirects; ${response.status} (${response.statusText})`
+								`'${link.address}' redirects; ${response.status} (${response.statusText})${(response.headers.location ? "; "+response.headers.location : "")}`
 								);
 				} else {
 					// else HTTPS form of HTTP link, and it's found and redirected
@@ -413,7 +425,7 @@ function doALink(link): Promise<null> {
 								link.lineText.text.indexOf(link.address),
 								link.address.length,
 								severity,
-								`HTTPS form of '${link.address}' is available; ${response.status} (${response.statusText})`
+								`HTTPS form of '${link.address}' is available; ${response.status} (${response.statusText})${(response.headers.location ? "; "+response.headers.location : "")}`
 								);
 				}
 			} else {
@@ -431,7 +443,7 @@ function doALink(link): Promise<null> {
 								link.lineText.text.indexOf(link.address),
 								link.address.length,
 								severity,
-								`HTTPS form of '${link.address}' is available; ${response.status} (${response.statusText})`
+								`HTTPS form of '${link.address}' is available; ${response.status} (${response.statusText})${(response.headers.location ? "; "+response.headers.location : "")}`
 								);
 				}
 			}
