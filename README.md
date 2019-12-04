@@ -165,13 +165,17 @@ or
 * Changed to Axios 0.19.0.
 * On redirected link, give new URL.
 
+### 2.2.0
+* Updated package dependencies because of security warnings.
+* Don't report link that redirects to same link (but rare, usually something is different).
+* Don't report link that redirects to same link with a tracking parameter added (but rare, usually something else is different too).
+* Fix status when file contains zero links.
+
 ---
 
 
 ## Development
 ### To-Do list
-* Don't report link that redirects to same link with a tracking parameter added.
-* File with zero links leaves status dangling ?
 * Create automated tests.
 * A lot of code cleanup needed, move stuff into functions.
 * Extension really is supposed to remove each diagnostic line after the corresponding source line is edited.

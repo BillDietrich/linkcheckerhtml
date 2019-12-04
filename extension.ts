@@ -371,13 +371,16 @@ function doALink(link): Promise<null> {
 			// callback function for the "result" branch of the axios Promise
 			//gOutputChannel.appendLine(`doALink.axiosPromise.then: got response for url ${response.config.url}: ${response.status} (${response.statusText})`);
 			//  JSON.stringify(response.request) gives circularity error
-			////gOutputChannel.appendLine(`doALink.axiosPromise.then: response.config ${JSON.stringify(response.config)}`);
-			////gOutputChannel.appendLine(`doALink.axiosPromise.then: response.headers ${JSON.stringify(response.headers)}`);
+			//gOutputChannel.appendLine(`doALink.axiosPromise.then: response.config ${JSON.stringify(response.config)}`);
+			//gOutputChannel.appendLine(`doALink.axiosPromise.then: response.headers ${JSON.stringify(response.headers)}`);
 			////gOutputChannel.appendLine(`doALink.axiosPromise.then: response.data ${JSON.stringify(response.data)}`);
 			//if (response.status === 301) {
 			//	//gOutputChannel.appendLine(`doALink.axiosPromise.then: redirected to response.headers.location ${JSON.stringify(response.headers.location)}`);
 			//}
 			let sReportRedirects = gConfiguration.reportRedirects;
+			var nIndexOfQuestionMarkInLocation = 0;
+			if ((response.status > 300) && (response.status < 400))
+				nIndexOfQuestionMarkInLocation = response.headers.location.indexOf("?");
 			// as Error, as Warning, as Information, Don't report
 			if ((response.status > 400) && (response.status < 600)) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} is unreachable.`);
@@ -392,6 +395,19 @@ function doALink(link): Promise<null> {
 								);
 				}
 				// else HTTPS form of HTTP link, and it's not found, don't report
+			} else if (((response.status > 300) && (response.status < 400))
+					&& (response.headers.location === response.config.url)) {
+				// response code says it redirected, but in fact old location is same as new location
+				// hardly ever get this case, often the new location is just "/", or has "/" or ".html" added
+				// do nothing
+				//gOutputChannel.appendLine(`doALink.axiosPromise.then: old location matches new location.`);
+			} else if (((response.status > 300) && (response.status < 400))
+					&& (nIndexOfQuestionMarkInLocation > 0)
+					&& (response.headers.location.substring(0,nIndexOfQuestionMarkInLocation) === response.config.url)) {
+				// response code says it redirected, but new location is just old location with "?something" appended
+				// hardly ever get this case, often new location is different
+				// do nothing
+				//gOutputChannel.appendLine(`doALink.axiosPromise.then: old location matches new location plus question mark.`);
 			} else if ((sReportRedirects[0]!='D') && ((response.status > 300) && (response.status < 400))) {
 				//gOutputChannel.appendLine(`doALink.axiosPromise.then: ${link.address} on line ${lineNumber} redirected.`);
 				// redirected to response.headers.location
@@ -450,7 +466,7 @@ function doALink(link): Promise<null> {
 		},
 			(error) =>
 		{
-			//gOutputChannel.appendLine(`doALink.axiosPromise.catch0: ${link.address} error: ${error} typeof error: ${typeof error}`);
+			//gOutputChannel.appendLine(`doALink.axiosPromise.catch0: ${link.address} error: ${error}`);
 			addDiagnostic(
 						lineNumber,
 						link.lineText.text.indexOf(link.address),
@@ -829,6 +845,9 @@ function getHtmlLinks(document: TextDocument): Promise<Link[]> {
             //Return the populated array, which completes the promise.
             resolve(linksToReturn);
         } else {
+			myStatusBarItem.text = ``;
+			myStatusBarItem.show();
+			gbDone = true;
             //Reject, because we found no links
             reject;
         }

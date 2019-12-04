@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -181,14 +181,20 @@
 		]
 	},
 	"devDependencies": {
-		"vscode": "*",
+		"@types/node": "^8.10.25",
 		"typescript": "*",
-		"@types/node": "^8.10.25"
+		"vsce": "^1.70.0",
+		"vscode": "^1.1.36"
 	},
 	"dependencies": {
 		"axios": "^0.19.0",
+		"braces": "^3.0.2",
+		"diff": "^4.0.1",
+		"event-stream": "^4.0.1",
 		"fs": "^0.0.1-security",
+		"fstream": "^1.0.12",
+		"gulp-untar": "0.0.8",
 		"path": "^0.12.7",
-		"vsce": "^1.70.0"
+		"tar": "^5.0.5"
 	}
 }
