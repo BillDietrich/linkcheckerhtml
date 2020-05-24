@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "2.2.0",
+	"version": "3.0.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -142,7 +142,7 @@
 					},
 					"linkcheckerhtml.userAgent": {
 						"type": "string",
-						"default": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0",
+						"default": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0",
 						"description": "User-Agent value used in Get requests."
 					},
 					"linkcheckerhtml.checkInternalLinks": {
@@ -195,6 +195,7 @@
 		"fstream": "^1.0.12",
 		"gulp-untar": "0.0.8",
 		"path": "^0.12.7",
-		"tar": "^5.0.5"
+		"tar": "^5.0.5",
+		"tor-request": "^3.1.0"
 	}
 }

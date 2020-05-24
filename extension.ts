@@ -1,4 +1,7 @@
+//------------------------------------------------------------------------------
 // extension.ts
+
+//------------------------------------------------------------------------------
 
 // Some things from 'vscode', which contains the VS Code extensibility API
 import {
@@ -38,6 +41,8 @@ import {
 	} from 'axios';
 const axios = require('axios');
 
+const torreq = require('tor-request');
+
 //Interface for links
 interface Link {
     text: string
@@ -45,6 +50,9 @@ interface Link {
     lineText: TextLine
 	bDoHTTPSForm: boolean	// address is HTTP, but check HTTPS form of it
 }
+
+
+//------------------------------------------------------------------------------
 
 var myStatusBarItem: StatusBarItem = null;
 var gDiagnosticsCollection: DiagnosticCollection = null;
@@ -63,6 +71,8 @@ var gaDontCheck: Array<string> = null;
 
 //var gOutputChannel = null;	// remove comment chars to do debugging
 
+
+//------------------------------------------------------------------------------
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -102,6 +112,8 @@ export function deactivate() {
 	// included in extensionContext.subscriptions
 }
 
+
+//------------------------------------------------------------------------------
 
 // open current selected URL in browser
 export function openURL() {
@@ -147,6 +159,8 @@ export function openURLasHTTPS() {
 }
 
 
+//------------------------------------------------------------------------------
+
 // clear all diagnostics belonging to this extension
 export function clearDiagnostics() {
     //gOutputChannel.appendLine(`clearDiagnostics: called`);
@@ -156,6 +170,8 @@ export function clearDiagnostics() {
 	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 }
 
+
+//------------------------------------------------------------------------------
 
 // Generate a report of broken links and the line they occur on
 function generateLinkReport() {
@@ -273,6 +289,7 @@ function generateLinkReport() {
 }
 
 
+//------------------------------------------------------------------------------
 
 /**
  * Performs a list of callable actions (promise factories) so that only a limited
@@ -330,6 +347,7 @@ function throttleActions(links, limit): Promise<any> {
 }
 
 
+//------------------------------------------------------------------------------
 
 function doALink(link): Promise<null> {
 
@@ -347,8 +365,70 @@ function doALink(link): Promise<null> {
 
 	let myPromise = null;
 	
+	// Is it a Tor/onion link?
+	if (isOnionLink(link.address)) {
+		//gOutputChannel.appendLine(`doALink: onion link address '${link.address}'`);
+		var address = link.address;
+		if (link.bDoHTTPSForm)
+			address = link.address.slice(0, 4) + "s" + link.address.slice(4);
+		//gOutputChannel.appendLine(`doALink: onion address '${address}'`);
+/*
+		torreq.request(
+					//'https://api.ipify.org',
+					address,
+					function (err, res, body) {
+						//gOutputChannel.appendLine(`doALink:  torreq.request gave err "${err}", res "${res}"`);
+						if (!err) {
+							//gOutputChannel.appendLine(`doALink:  res.statusCode ${res.statusCode}`);
+							////gOutputChannel.appendLine(`doALink: res ${JSON.stringify(res)}`);
+						} else {
+							//gOutputChannel.appendLine(`doALink: err "${err}"`);
+							////gOutputChannel.appendLine(`doALink: err ${JSON.stringify(err)}`);
+						}
+					}
+			);
+*/
+		myPromise = new Promise((resolve, reject) => {
+			torreq.request(address, true, (err, res, body) => {
+				return err ? reject(err) : resolve(res.statusCode)
+			});
+		});
+		myPromise.then(
+			(response) =>
+		{
+			// callback function for the "result" branch of the axios Promise
+			//gOutputChannel.appendLine(`doALink.torreqPromise.then: got response "${response}"`);
+			if ((response >= 400) && (response < 600)) {
+				//gOutputChannel.appendLine(`doALink.torreqPromise.then: ${address} on line ${lineNumber} is unreachable.`);
+				addDiagnostic(
+							lineNumber,
+							link.lineText.text.indexOf(link.address),
+							link.address.length,
+							DiagnosticSeverity.Error,
+							`Onion address '${address}' is unreachable: ${response}`
+							);
+			}
+		},
+			(error) =>
+		{
+			//gOutputChannel.appendLine(`doALink.torreqPromise.then: error: ${error}`);
+			var sError = error.toString();
+			if (sError.includes('ECONNREFUSED 127.0.0.1:9050')) {
+				sError = "Can't check onion URLs: no Tor/socks service listening on 127.0.0.1:9050";
+			}
+			addDiagnostic(
+						lineNumber,
+						link.lineText.text.indexOf(link.address),
+						link.address.length,
+						DiagnosticSeverity.Error,
+						`Onion address '${address}' is unreachable: ${sError}`
+						);
+		}
+		);
+	}
+
 	// Is it an HTTP* link or a relative link?
-	if (isHttpLink(link.address)) {
+	else if (isHttpLink(link.address)) {
 		// And check if they are broken or not.
 		let sReportRedirects = gConfiguration.reportRedirects;
 		let sUserAgent = gConfiguration.userAgent;
@@ -598,6 +678,7 @@ function doALink(link): Promise<null> {
 }
 
 
+//------------------------------------------------------------------------------
 
 // Parse the HTML Anchor links out of the document
 function getHtmlLinks(document: TextDocument): Promise<Link[]> {
@@ -855,6 +936,7 @@ function getHtmlLinks(document: TextDocument): Promise<Link[]> {
 }
 
 
+//------------------------------------------------------------------------------
 
 // Parse the links out of and XML or RSS document.
 //
@@ -1069,6 +1151,7 @@ function getXmlRssLinks(document: TextDocument): Promise<Link[]> {
 }
 
 
+//------------------------------------------------------------------------------
 
 // Is this an HTTP or HTTPS link?
 function isHttpLink(UriToCheck: string): boolean {
@@ -1081,13 +1164,20 @@ function isHttpLink(UriToCheck: string): boolean {
 }
 
 
-
 // Is this an HTTP link?
 function isPlainHttpLink(UriToCheck: string): boolean {
 	var bRetVal = UriToCheck.toLowerCase().startsWith('http://');
     return bRetVal;
 }
 
+
+// Is this an onion link?
+function isOnionLink(UriToCheck: string): boolean {
+	var bRetVal = (UriToCheck.toLowerCase().startsWith('https://') || UriToCheck.toLowerCase().startsWith('http://'));
+	if (bRetVal)
+		bRetVal = UriToCheck.toLowerCase().includes('.onion');
+    return bRetVal;
+}
 
 
 // Is this a non-HTTP* link?
@@ -1113,13 +1203,11 @@ function isNonHTTPLink(UriToCheck: string): boolean {
 }
 
 
-
 // Is this a mailto link?
 function isMailtoLink(UriToCheck: string): boolean {
 	var bRetVal = UriToCheck.toLowerCase().startsWith('mailto:');
     return bRetVal;
 }
-
 
 
 // Is this a validly-formatted mailto link?
@@ -1155,6 +1243,8 @@ function DontCheck(address:string): boolean {
 }
 
 
+//------------------------------------------------------------------------------
+
 function addDiagnostic(
 					lineNumber:number,
 					start:number,
@@ -1169,3 +1259,6 @@ function addDiagnostic(
 	gDiagnosticsArray.push(diag);
 	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 }
+
+
+//------------------------------------------------------------------------------
