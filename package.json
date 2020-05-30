@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "3.0.0",
+	"version": "3.1.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -187,6 +187,7 @@
 		"vscode": "^1.1.36"
 	},
 	"dependencies": {
+		"array-buffer-to-hex": "^1.0.0",
 		"axios": "^0.19.0",
 		"braces": "^3.0.2",
 		"diff": "^4.0.1",
@@ -196,6 +197,7 @@
 		"gulp-untar": "0.0.8",
 		"path": "^0.12.7",
 		"tar": "^5.0.5",
+		"tor-control": "0.0.3",
 		"tor-request": "^3.1.0"
 	}
 }

@@ -41,7 +41,12 @@ import {
 	} from 'axios';
 const axios = require('axios');
 
-const torreq = require('tor-request');
+const torreq = require('tor-request');	// https://www.npmjs.com/package/tor-request
+
+const torcon = require('tor-control');	// https://www.npmjs.com/package/tor-control
+var torcontrol = null;
+
+const arrayBufferToHex = require('array-buffer-to-hex')
 
 //Interface for links
 interface Link {
@@ -69,7 +74,7 @@ var gbCancelled = false;
 var gLocalAnchorNames: Array<string> = null;
 var gaDontCheck: Array<string> = null;
 
-//var gOutputChannel = null;	// remove comment chars to do debugging
+//var //gOutputChannel = null;	// remove comment chars to do debugging
 
 
 //------------------------------------------------------------------------------
@@ -113,6 +118,173 @@ export function deactivate() {
 }
 
 
+
+//------------------------------------------------------------------------------
+// from https://github.com/GabiGrin/vscode-auto-run-command/blob/master/src/lib/run-shell-command.ts
+
+const runShellCommand = async (command: string): Promise<any> => {
+    const { exec } = require('child_process');
+
+	//gOutputChannel.appendLine(`runShellCommand: called, command "${command}"`);
+
+    return new Promise((resolve, reject) => {
+        exec(command, (error, _, stderr) => {
+            if (error) {
+				// we get here if xdotool can't find the window specified
+				//gOutputChannel.appendLine(`runShellCommand: error "${error}"`);
+                reject(error);
+				return;
+            }
+            if (stderr) {
+				//gOutputChannel.appendLine(`runShellCommand: stderr "${stderr}"`);
+                reject(stderr);
+				return;
+            }
+            resolve();
+        });
+    });
+}
+
+
+//------------------------------------------------------------------------------
+
+// open an onion URL in Tor browser
+export function openOnionURL(sURL) {
+    //gOutputChannel.appendLine(`openOnionURL: called, sURL '${sURL}'`);
+
+/*
+	// METHOD 1: use tor-control
+	//
+	// see "man tor"
+	// to find out what config file is being used, do "tor --verify-config"
+	// any time you change /etc/tor/torrc, do "sudo systemctl restart tor"
+	// for debugging, un-comment "Log debug file /var/log/tor/debug.log" in /etc/tor/torrc
+	// if CookieAuthentication == 1 in /etc/tor/torrc,
+	// file /run/tor/control.authcookie gets rewritten every time you start Tor service
+	fs.readFile(
+			'/var/lib/tor/control_auth_cookie',	// for browser
+			//'/run/tor/control.authcookie',	// for socks service
+			(err, data) => {
+		if (err) {
+			//gOutputChannel.appendLine(`openOnionURL.readFile: err "${err}"`);
+			return;
+		}
+		//gOutputChannel.appendLine(`openOnionURL.readFile: data bytelength ${data.byteLength}`);
+		const datahex = arrayBufferToHex(data);
+		//gOutputChannel.appendLine(`openOnionURL.readFile: datahex "${datahex}"`);
+		torcontrol = new torcon({host:"127.0.0.1", port:9151, password:datahex, persistent:true});
+		//torcontrol = new torcon({host:"127.0.0.1", port:9151, password:"giraffe"});
+		//torcontrol = new torcon({host:"127.0.0.1", port:9151});
+		//torcontrol.TorControlPort.password = 'giraffe';
+		//gOutputChannel.appendLine(`openOnionURL: past new tor-control`);
+		// hash of "giraffe": 16:4F736B69E8F24708602DE20EE4801AFCC191DB13CDF700CB3D31BA23E6
+		// hash of giraffe: 16:95CD14D0F828911A60E28E633759E6866FE86E526B692EDFCD0DEC6DB9
+		// https://gitweb.torproject.org/torspec.git/tree/control-spec.txt
+		// support.torproject.org/#connectingtotor
+		// https://tor.stackexchange.com/questions/15098/wrong-password-when-using-system-installed-tor-with-tor-browser
+		// https://trac.torproject.org/projects/tor/wiki/TorBrowserBundleSAQ
+		// https://2019.www.torproject.org/docs/tor-manual.html.en
+		// https://www.codeproject.com/articles/1072864/tor-net-a-managed-tor-network-library
+		//torcontrol.connect();
+		////gOutputChannel.appendLine(`openOnionURL: past connect`);
+		// in Tor Browser log, always get "[NOTICE] New control connection opened from 127.0.0.1."
+		//							and   "[WARN] Bad password or authentication cookie on controller."
+		// "Error: Authentication failed with message: 515 Authentication failed: Password did not match HashedControlPassword *or* authentication cookie."
+		torcontrol.getInfo(
+			['version', 'exit-policy/ipv4'],
+			function (err, res) {
+				//gOutputChannel.appendLine(`openOnionURL.callback:  torcon.getInfo gave err "${err}", res "${res}"`);
+				if (!err) {
+					//gOutputChannel.appendLine(`openOnionURL.callback:  res.code ${res.code}, res.message ${res.message}, res.data ${res.data}`);
+					////gOutputChannel.appendLine(`openOnionURL: res ${JSON.stringify(res)}`);
+				} else {
+					//gOutputChannel.appendLine(`openOnionURL.callback: err "${err}"`);
+					////gOutputChannel.appendLine(`openOnionURL: err ${JSON.stringify(err)}`);
+					//gOutputChannel.appendLine(`openOnionURL: res ${JSON.stringify(res)}`);
+				}
+				torcontrol.disconnect();
+				//gOutputChannel.appendLine(`openOnionURL.callback: past disconnect`);
+				torcontrol = null;
+			}
+		);
+		//gOutputChannel.appendLine(`openOnionURL: past getInfo`);
+		torcontrol.sendCommand(
+			"SHUTDOWN",
+			function (err, res) {
+				//gOutputChannel.appendLine(`openOnionURL.callback:  torcon.sendCommand gave err "${err}", res "${res}"`);
+				if (!err) {
+					//gOutputChannel.appendLine(`openOnionURL.callback:  res.code ${res.code}, res.message ${res.message}, res.data ${res.data}`);
+					////gOutputChannel.appendLine(`openOnionURL: res ${JSON.stringify(res)}`);
+				} else {
+					//gOutputChannel.appendLine(`openOnionURL.callback: err "${err}"`);
+					////gOutputChannel.appendLine(`openOnionURL: err ${JSON.stringify(err)}`);
+					//gOutputChannel.appendLine(`openOnionURL: res ${JSON.stringify(res)}`);
+				}
+				torcontrol.disconnect();
+				//gOutputChannel.appendLine(`openOnionURL.callback: past disconnect`);
+				torcontrol = null;
+			}
+		);
+		//gOutputChannel.appendLine(`openOnionURL: past sendCommand`);
+		//torcontrol.disconnect();
+		////gOutputChannel.appendLine(`openOnionURL: past new disconnect`);
+		//torcontrol = null;
+	})
+*/
+
+	// METHOD 2: launch Tor Browser from command-line with --new-tab option
+	// gave up, launching is ridiculously contorted, at least on Linux
+	// and for example, the GNOME desktop file to launch Tor Browser is self-rewriting !
+
+	// METHOD 3: Define a new URL protocol type in the desktop.
+	// but you'd have to rewrite the URL, and Tor would get an URL it couldn't handle
+	// And you end up same problems as method 2.
+
+	// METHOD 4: D-Bus ?  Didn't try.
+	// https://dbus.freedesktop.org/doc/dbus-tutorial.html
+	// https://github.com/Shouqun/node-dbus
+	// https://www.npmjs.com/package/dbus
+	// https://github.com/sidorares/dbus-native
+	// https://stackoverflow.com/questions/21440589/node-dbus-native
+
+	// METHOD 5: xdotool  (works on Linux !)
+	// https://www.faqforge.com/linux/open-new-web-browser-tab-command-line-linux/
+	// sudo apt install xdotool
+	// man xdotool
+	let cmd1 = "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 --delay 100 F6 ctrl+t type --delay 100 '" + sURL + "'";
+	let cmd2 = "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 --delay 100 Return"
+	var p1 = runShellCommand(cmd1);
+	p1.then(() => {
+		//gOutputChannel.appendLine(`openOnionURL.p1.then: success`);
+		var p2 = runShellCommand(cmd2);
+		p2.then(() => {
+			//gOutputChannel.appendLine(`openOnionURL.p2.then: success`);
+			})
+			.catch(error => {
+				//gOutputChannel.appendLine(`openOnionURL.p2.then: error ${error}`);
+			})
+		.catch(error => {
+			//gOutputChannel.appendLine(`openOnionURL.p1.then: error ${error}`);
+		});
+	});
+
+//gOutputChannel.appendLine(`openOnionURL: returning`);
+}
+
+
+//------------------------------------------------------------------------------
+
+// open normal (non-Onion) URL in browser
+export function openNormalURL(sURL) {
+    //gOutputChannel.appendLine(`openNormalURL: called, sURL '${sURL}'`);
+
+	//gOutputChannel.appendLine(`openNormalURL: call vscode.open, sURL '${sURL}'`);
+	commands.executeCommand('vscode.open', Uri.parse(sURL));	// ignores local files
+
+    //gOutputChannel.appendLine(`openNormalURL: returning`);
+}
+
+
 //------------------------------------------------------------------------------
 
 // open current selected URL in browser
@@ -123,14 +295,19 @@ export function openURL() {
 	let selection = editor.selection;
 	if (!selection) return;
 	let sURL = editor.document.getText(selection);
+	//let sURL = "https://3g22222222222222.onion/";
 
 	// want to move cursor from diagnostics pane to editor pane
 	// but can't figure out how to do it
 	//window.showTextDocument(editor);
 	//workbench.action.navigateToLastEditLocation
 
-    //gOutputChannel.appendLine(`openURL: call open, sURL '${sURL}'`);
-	commands.executeCommand('vscode.open', Uri.parse(sURL));	// ignores local files
+	if (isOnionLink(sURL)) {
+		openOnionURL(sURL);
+	} else {
+		openNormalURL(sURL);
+	}
+
     //gOutputChannel.appendLine(`openURL: returning`);
 }
 
@@ -152,9 +329,11 @@ export function openURLasHTTPS() {
 		//window.showTextDocument(editor);
 		//workbench.action.navigateToLastEditLocation
 
-		//gOutputChannel.appendLine(`openURLasHTTPS: call open, sURLasHTTPS ${sURLasHTTPS}`);
-		commands.executeCommand('vscode.open', Uri.parse(sURLasHTTPS));	// ignores local files
-		//gOutputChannel.appendLine(`openURLasHTTPS: returning`);
+		if (isOnionLink(sURLasHTTPS)) {
+			openOnionURL(sURLasHTTPS);
+		} else {
+			openNormalURL(sURLasHTTPS);
+		}
 	}
 }
 
