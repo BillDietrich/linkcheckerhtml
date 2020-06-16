@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "3.1.0",
+	"version": "3.2.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -175,6 +175,16 @@
 						"type": "string",
 						"default": "",
 						"description": "If a local file URL has no extension, add this extension to the filename before checking."
+					},
+					"linkcheckerhtml.torOpenURLCmd1": {
+						"type": "string",
+						"default": "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 ctrl+t type --delay 100 ",
+						"description": "Run this command (1) to open an URL in Tor Browser ('URL' will be appended)"
+					},
+					"linkcheckerhtml.torOpenURLCmd2": {
+						"type": "string",
+						"default": "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 Return",
+						"description": "Run this command (2) to open an URL in Tor Browser"
 					}
 				}
 			}

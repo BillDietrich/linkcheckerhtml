@@ -92,6 +92,10 @@ The connection to Tor Browser is not 100% reliable.  The extension is using xdot
 
 * **timeout**: Timeout (seconds) for accessing a link (range is 5 to 30; default is 15).
 
+* **torOpenURLCmd1**: command (1) to open an URL in Tor Browser ('URL' will be appended; default is "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 ctrl+t type --delay 100 "
+
+* **torOpenURLCmd2**: command (2) to open an URL in Tor Browser (default is "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 Return").
+
 * **userAgent**: User-Agent value used in Get requests (default is "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0").
 
 
@@ -126,7 +130,8 @@ And checking is getting harder, with more URLs redirecting through GDPR-consent 
 
 * The checking in XML and RSS files is permissive, allowing known stuff from RSS, and likely stuff that could be in XML.  Any attribute of the form *url="something" or *href="something" will be checked, as well as the standard RSS tags: link, guid, url.
 
-* Onion: an URL is considered "onion" if it starts with "https://" or "http://" and contains ".onion" ANYWHERE in it.
+* Onion: an URL is considered "onion" if it starts with "https://" and contains ".onion" ANYWHERE in it.
+* Onion: if an URL starts with "http://", it will be treated as non-Onion, and the "https://" form of it will be checked as non-Onion too.
 
 ---
 
@@ -237,18 +242,21 @@ or
 ### 3.1.0
 * Made `Alt+T` or `Alt+M` on onion link open it in Tor Browser, using xdotool.
 
+### 3.2.0
+* Flag onion links where domain name is illegal length.
+* Moved xdotool command line strings into settings.  (Wayland will use ydotool ?)
+* Treat onion links that start with "http:" as clearnet links.
+
 ---
 
 
 ## Development
 ### To-Do list
+* Somehow using xdotool to open onion link in Tor Browser has gotten broken.
 * Test onion links a lot more, maybe indicate redirects, any way to control timeout, set user-agent.
 * Better way to open onion link in Tor Browser ?
 * Way to open onion link in Tor Browser on Windows ?
-* Flag onion links that start with "http:".
-* Flag onion links where domain name is illegal length.
 * Add setting "do/don't check onion links".
-* Move xdotool command line strings into settings.
 * Snap version of VSCode uses `Alt+H` for Help menu.
 * Create automated tests.
 * A lot of code cleanup needed, move stuff into functions.

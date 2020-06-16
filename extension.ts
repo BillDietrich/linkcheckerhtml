@@ -74,7 +74,7 @@ var gbCancelled = false;
 var gLocalAnchorNames: Array<string> = null;
 var gaDontCheck: Array<string> = null;
 
-//var //gOutputChannel = null;	// remove comment chars to do debugging
+//var gOutputChannel = null;	// remove comment chars to do debugging
 
 
 //------------------------------------------------------------------------------
@@ -157,13 +157,23 @@ export function openOnionURL(sURL) {
 	//
 	// see "man tor"
 	// to find out what config file is being used, do "tor --verify-config"
+	//
 	// any time you change /etc/tor/torrc, do "sudo systemctl restart tor"
+	// then check "sudo journalctl --pager-end" and "sudo ss -lptu" see listener on 9051
+	//
 	// for debugging, un-comment "Log debug file /var/log/tor/debug.log" in /etc/tor/torrc
-	// if CookieAuthentication == 1 in /etc/tor/torrc,
+	// but you will get a TON of output
+	//
+	// if HashedControlPassword is set or CookieAuthentication == 1 in /etc/tor/torrc,
 	// file /run/tor/control.authcookie gets rewritten every time you start Tor service
+	//
+	// file /var/lib/tor/control_auth_cookie gets rewritten when ???
+
+	// sudo chmod a+rx /var/lib/tor ; sudo chmod a+r /var/lib/tor/control_auth_cookie ; sudo chmod a+r /run/tor/control.authcookie
+
 	fs.readFile(
-			'/var/lib/tor/control_auth_cookie',	// for browser
-			//'/run/tor/control.authcookie',	// for socks service
+			//'/var/lib/tor/control_auth_cookie',	// for browser
+			'/run/tor/control.authcookie',	// for socks service
 			(err, data) => {
 		if (err) {
 			//gOutputChannel.appendLine(`openOnionURL.readFile: err "${err}"`);
@@ -172,10 +182,15 @@ export function openOnionURL(sURL) {
 		//gOutputChannel.appendLine(`openOnionURL.readFile: data bytelength ${data.byteLength}`);
 		const datahex = arrayBufferToHex(data);
 		//gOutputChannel.appendLine(`openOnionURL.readFile: datahex "${datahex}"`);
-		torcontrol = new torcon({host:"127.0.0.1", port:9151, password:datahex, persistent:true});
-		//torcontrol = new torcon({host:"127.0.0.1", port:9151, password:"giraffe"});
-		//torcontrol = new torcon({host:"127.0.0.1", port:9151});
+
+		//torcontrol = new torcon({host:"127.0.0.1", port:9051, password:datahex, persistent:true});
+		torcontrol = new torcon({host:"127.0.0.1", port:9051, password:"giraffe"});
+		//torcontrol = new torcon({host:"127.0.0.1", port:9151, persistent:true});
 		//torcontrol.TorControlPort.password = 'giraffe';
+		// note: Tor Browser log (hamburger / Preferences / General / View Log) uses time-zone of exit relay !
+		// in Tor Browser log, always get "[NOTICE] New control connection opened from 127.0.0.1."
+		//							and   "[WARN] Bad password or authentication cookie on controller."
+		// "Error: Authentication failed with message: 515 Authentication failed: Password did not match HashedControlPassword *or* authentication cookie."
 		//gOutputChannel.appendLine(`openOnionURL: past new tor-control`);
 		// hash of "giraffe": 16:4F736B69E8F24708602DE20EE4801AFCC191DB13CDF700CB3D31BA23E6
 		// hash of giraffe: 16:95CD14D0F828911A60E28E633759E6866FE86E526B692EDFCD0DEC6DB9
@@ -187,9 +202,7 @@ export function openOnionURL(sURL) {
 		// https://www.codeproject.com/articles/1072864/tor-net-a-managed-tor-network-library
 		//torcontrol.connect();
 		////gOutputChannel.appendLine(`openOnionURL: past connect`);
-		// in Tor Browser log, always get "[NOTICE] New control connection opened from 127.0.0.1."
-		//							and   "[WARN] Bad password or authentication cookie on controller."
-		// "Error: Authentication failed with message: 515 Authentication failed: Password did not match HashedControlPassword *or* authentication cookie."
+
 		torcontrol.getInfo(
 			['version', 'exit-policy/ipv4'],
 			function (err, res) {
@@ -208,29 +221,30 @@ export function openOnionURL(sURL) {
 			}
 		);
 		//gOutputChannel.appendLine(`openOnionURL: past getInfo`);
-		torcontrol.sendCommand(
-			"SHUTDOWN",
-			function (err, res) {
-				//gOutputChannel.appendLine(`openOnionURL.callback:  torcon.sendCommand gave err "${err}", res "${res}"`);
-				if (!err) {
-					//gOutputChannel.appendLine(`openOnionURL.callback:  res.code ${res.code}, res.message ${res.message}, res.data ${res.data}`);
-					////gOutputChannel.appendLine(`openOnionURL: res ${JSON.stringify(res)}`);
-				} else {
-					//gOutputChannel.appendLine(`openOnionURL.callback: err "${err}"`);
-					////gOutputChannel.appendLine(`openOnionURL: err ${JSON.stringify(err)}`);
-					//gOutputChannel.appendLine(`openOnionURL: res ${JSON.stringify(res)}`);
-				}
-				torcontrol.disconnect();
-				//gOutputChannel.appendLine(`openOnionURL.callback: past disconnect`);
-				torcontrol = null;
-			}
-		);
-		//gOutputChannel.appendLine(`openOnionURL: past sendCommand`);
+
+		//torcontrol.sendCommand(
+		//	"SHUTDOWN",
+		//	function (err, res) {
+		//		//gOutputChannel.appendLine(`openOnionURL.callback:  torcon.sendCommand gave err "${err}", res "${res}"`);
+		//		if (!err) {
+		//			//gOutputChannel.appendLine(`openOnionURL.callback:  res.code ${res.code}, res.message ${res.message}, res.data ${res.data}`);
+		//			////gOutputChannel.appendLine(`openOnionURL: res ${JSON.stringify(res)}`);
+		//		} else {
+		//			//gOutputChannel.appendLine(`openOnionURL.callback: err "${err}"`);
+		//			////gOutputChannel.appendLine(`openOnionURL: err ${JSON.stringify(err)}`);
+		//			//gOutputChannel.appendLine(`openOnionURL: res ${JSON.stringify(res)}`);
+		//		}
+		//		torcontrol.disconnect();
+		//		//gOutputChannel.appendLine(`openOnionURL.callback: past disconnect`);
+		//		torcontrol = null;
+		//	}
+		//);
+		////gOutputChannel.appendLine(`openOnionURL: past sendCommand`);
+
 		//torcontrol.disconnect();
 		////gOutputChannel.appendLine(`openOnionURL: past new disconnect`);
 		//torcontrol = null;
 	})
-*/
 
 	// METHOD 2: launch Tor Browser from command-line with --new-tab option
 	// gave up, launching is ridiculously contorted, at least on Linux
@@ -246,27 +260,31 @@ export function openOnionURL(sURL) {
 	// https://www.npmjs.com/package/dbus
 	// https://github.com/sidorares/dbus-native
 	// https://stackoverflow.com/questions/21440589/node-dbus-native
+*/
 
 	// METHOD 5: xdotool  (works on Linux !)
 	// https://www.faqforge.com/linux/open-new-web-browser-tab-command-line-linux/
 	// sudo apt install xdotool
 	// man xdotool
-	let cmd1 = "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 --delay 100 F6 ctrl+t type --delay 100 '" + sURL + "'";
-	let cmd2 = "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 --delay 100 Return"
-	var p1 = runShellCommand(cmd1);
+	gConfiguration = workspace.getConfiguration('linkcheckerhtml');
+	let sCmd1 = gConfiguration.torOpenURLCmd1 + "'" + sURL + "'";
+	let sCmd2 = gConfiguration.torOpenURLCmd2;
+	var p1 = runShellCommand(sCmd1);
 	p1.then(() => {
-		//gOutputChannel.appendLine(`openOnionURL.p1.then: success`);
-		var p2 = runShellCommand(cmd2);
-		p2.then(() => {
-			//gOutputChannel.appendLine(`openOnionURL.p2.then: success`);
-			})
-			.catch(error => {
-				//gOutputChannel.appendLine(`openOnionURL.p2.then: error ${error}`);
-			})
+			//gOutputChannel.appendLine(`openOnionURL.p1.then: success`);
+			if (sCmd2.length > 0) {
+				var p2 = runShellCommand(sCmd2);
+				p2.then(() => {
+						//gOutputChannel.appendLine(`openOnionURL.p2.then: success`);
+					})
+					.catch(error => {
+						//gOutputChannel.appendLine(`openOnionURL.p2.then: error ${error}`);
+					})
+			}
+		})
 		.catch(error => {
 			//gOutputChannel.appendLine(`openOnionURL.p1.then: error ${error}`);
 		});
-	});
 
 //gOutputChannel.appendLine(`openOnionURL: returning`);
 }
@@ -532,24 +550,33 @@ function doALink(link): Promise<null> {
 
 	//gOutputChannel.appendLine(`doALink: called, link.address '${link.address}'`);
 
-	var diag = null;
 /*
+	var diag = null;
 	diag = new Diagnostic(new Range(new Position(1,10),new Position(2,20)), "messageHHHH", DiagnosticSeverity.Error);
 	gDiagnosticsArray.push(diag);
 	gDiagnosticsCollection.set(gDocument.uri,gDiagnosticsArray);
 */
 
 	//gOutputChannel.appendLine(`doALink: link on line ${link.lineText.lineNumber + 1} is ${link.address}'`);
-	var lineNumber = link.lineText.lineNumber;
+	let lineNumber = link.lineText.lineNumber;
 
-	let myPromise = null;
+	var myPromise = null;
 	
 	// Is it a Tor/onion link?
 	if (isOnionLink(link.address)) {
 		//gOutputChannel.appendLine(`doALink: onion link address '${link.address}'`);
 		var address = link.address;
-		if (link.bDoHTTPSForm)
-			address = link.address.slice(0, 4) + "s" + link.address.slice(4);
+		let sDomain = getDomainFromOnionLink(address);
+		//gOutputChannel.appendLine(`doALink: sDomain '${sDomain}'`);
+		if ((sDomain.length != 22) && (sDomain.length != 62)) {
+			addDiagnostic(
+						lineNumber,
+						link.lineText.text.indexOf(sDomain),
+						sDomain.length,
+						DiagnosticSeverity.Warning,
+						`Onion domain '${sDomain}' is wrong length; must be 16 or 56 characters plus '.onion'`
+						);
+		}
 		//gOutputChannel.appendLine(`doALink: onion address '${address}'`);
 /*
 		torreq.request(
@@ -569,14 +596,19 @@ function doALink(link): Promise<null> {
 */
 		myPromise = new Promise((resolve, reject) => {
 			torreq.request(address, true, (err, res, body) => {
-				return err ? reject(err) : resolve(res.statusCode)
+				//gOutputChannel.appendLine(`doALink.torreq: returned err "${err}", res "${res}" for "${address}"`);
+				//return (err ? reject(err) : resolve(res.statusCode))
+				if (err)
+					reject(err);
+				else
+					resolve(res.statusCode);
 			});
 		});
 		myPromise.then(
 			(response) =>
 		{
-			// callback function for the "result" branch of the axios Promise
-			//gOutputChannel.appendLine(`doALink.torreqPromise.then: got response "${response}"`);
+			// callback function for the "result" branch of the torreq Promise
+			//gOutputChannel.appendLine(`doALink.torreqPromise.then: got response "${response}" for "${link.address}"`);
 			if ((response >= 400) && (response < 600)) {
 				//gOutputChannel.appendLine(`doALink.torreqPromise.then: ${address} on line ${lineNumber} is unreachable.`);
 				addDiagnostic(
@@ -590,7 +622,7 @@ function doALink(link): Promise<null> {
 		},
 			(error) =>
 		{
-			//gOutputChannel.appendLine(`doALink.torreqPromise.then: error: ${error}`);
+			//gOutputChannel.appendLine(`doALink.torreqPromise.then: error: "${error}"  for "${link.address}"`);
 			var sError = error.toString();
 			if (sError.includes('ECONNREFUSED 127.0.0.1:9050')) {
 				sError = "Can't check onion URLs: no Tor/socks service listening on 127.0.0.1:9050";
@@ -600,7 +632,7 @@ function doALink(link): Promise<null> {
 						link.lineText.text.indexOf(link.address),
 						link.address.length,
 						DiagnosticSeverity.Error,
-						`Onion address '${address}' is unreachable: ${sError}`
+						`Onion address '${address}' is not reachable: ${sError}`
 						);
 		}
 		);
@@ -650,7 +682,7 @@ function doALink(link): Promise<null> {
 								link.lineText.text.indexOf(link.address),
 								link.address.length,
 								DiagnosticSeverity.Error,
-								`'${link.address}' is unreachable: ${response.status} (${response.statusText})`
+								`'${address}' is unreachable: ${response.status} (${response.statusText})`
 								);
 				}
 				// else HTTPS form of HTTP link, and it's not found, don't report
@@ -685,7 +717,7 @@ function doALink(link): Promise<null> {
 								link.lineText.text.indexOf(link.address),
 								link.address.length,
 								severity,
-								`'${link.address}' redirects; ${response.status} (${response.statusText})${(response.headers.location ? "; "+response.headers.location : "")}`
+								`'${address}' redirects; ${response.status} (${response.statusText})${(response.headers.location ? "; "+response.headers.location : "")}`
 								);
 				} else {
 					// else HTTPS form of HTTP link, and it's found and redirected
@@ -731,7 +763,7 @@ function doALink(link): Promise<null> {
 						link.lineText.text.indexOf(link.address),
 						link.address.length,
 						DiagnosticSeverity.Error,
-						`'${link.address}' is unreachable: ${error}`
+						`'${address}' is not reachable: ${error}`
 						);
 			//gOutputChannel.appendLine(`doALink.axiosPromise.catch0: end`);
 		}
@@ -750,7 +782,7 @@ function doALink(link): Promise<null> {
 						link.lineText.text.indexOf(link.address),
 						link.address.length,
 						DiagnosticSeverity.Error,
-						`'${link.address}' is unreachable: ${error}`
+						`'${address}' isn't reachable: ${error}`
 						);
 			//gOutputChannel.appendLine(`doALink.axiosPromise.catch1: end`);
 		});
@@ -1352,10 +1384,18 @@ function isPlainHttpLink(UriToCheck: string): boolean {
 
 // Is this an onion link?
 function isOnionLink(UriToCheck: string): boolean {
-	var bRetVal = (UriToCheck.toLowerCase().startsWith('https://') || UriToCheck.toLowerCase().startsWith('http://'));
+	var bRetVal = UriToCheck.toLowerCase().startsWith('https://');
 	if (bRetVal)
 		bRetVal = UriToCheck.toLowerCase().includes('.onion');
     return bRetVal;
+}
+
+
+// Get domain name from an onion link
+function getDomainFromOnionLink(UriToCheck: string): string {
+	var domains = UriToCheck.match(/https:\/\/(.*\.onion)/);
+	let domain = domains[1];
+    return domain;
 }
 
 
