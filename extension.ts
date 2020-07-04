@@ -262,13 +262,15 @@ export function openOnionURL(sURL) {
 	// https://stackoverflow.com/questions/21440589/node-dbus-native
 */
 
-	// METHOD 5: xdotool  (works on Linux !)
+	// METHOD 5: xdotool  (worked on Linux, then stopped working !)
 	// https://www.faqforge.com/linux/open-new-web-browser-tab-command-line-linux/
 	// sudo apt install xdotool
 	// man xdotool
 	gConfiguration = workspace.getConfiguration('linkcheckerhtml');
-	let sCmd1 = gConfiguration.torOpenURLCmd1 + "'" + sURL + "'";
+	let sCmd1 = gConfiguration.torOpenURLCmd1 + "'" + sURL + "'\"";
 	let sCmd2 = gConfiguration.torOpenURLCmd2;
+	//let sCmd2 = "sleep 1";
+
 	var p1 = runShellCommand(sCmd1);
 	p1.then(() => {
 			//gOutputChannel.appendLine(`openOnionURL.p1.then: success`);
@@ -285,6 +287,26 @@ export function openOnionURL(sURL) {
 		.catch(error => {
 			//gOutputChannel.appendLine(`openOnionURL.p1.then: error ${error}`);
 		});
+
+/*
+	// METHOD 6: xdotool a different way
+	const cp = require('child_process')
+	cp.exec(sCmd1, (err, stdout, stderr) => {
+		//gOutputChannel.appendLine('openOnionURL.1.stdout: ' + stdout);
+		//gOutputChannel.appendLine('openOnionURL.1.stderr: ' + stderr);
+		if (err) {
+			//gOutputChannel.appendLine('openOnionURL.1.error: ' + err);
+		} else {
+			cp.exec(sCmd2, (err, stdout, stderr) => {
+				//gOutputChannel.appendLine('openOnionURL.2.stdout: ' + stdout);
+				//gOutputChannel.appendLine('openOnionURL.2.stderr: ' + stderr);
+				if (err) {
+					//gOutputChannel.appendLine('openOnionURL.2.error: ' + err);
+				}
+			});
+		}
+	});
+*/
 
 //gOutputChannel.appendLine(`openOnionURL: returning`);
 }

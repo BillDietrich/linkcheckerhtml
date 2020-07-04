@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "3.2.0",
+	"version": "3.3.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -178,7 +178,7 @@
 					},
 					"linkcheckerhtml.torOpenURLCmd1": {
 						"type": "string",
-						"default": "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 ctrl+t type --delay 100 ",
+						"default": "sh -c \"xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 ctrl+t type ",
 						"description": "Run this command (1) to open an URL in Tor Browser ('URL' will be appended)"
 					},
 					"linkcheckerhtml.torOpenURLCmd2": {

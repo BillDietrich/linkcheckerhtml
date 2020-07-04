@@ -9,7 +9,7 @@ Local files:
 
 <a name="validname">&nbsp;</a>
 <a id="validid">&nbsp;</a>
-<div id="validid2">&nbsp;</div>
+<div id="validid2" role="none">&nbsp;</div>
 Some random text with <a href="./to/a/missing/file.html">a link to a missing local file</a>.
 Some random text with <a href="./to/a/missing/file">a link to a missing local file</a>.
 <br /><br />
@@ -48,8 +48,8 @@ Remote URLs:
 
 <a href="https://www.billdietrich.me/">valid HTTPS URL</a>
 <a href="https://www.billdietrich.me">valid HTTPS URL</a>
-<a href="http://2016.eicar.org/">valid HTTP URL</a>
-<a href="http://2016.eicar.org">valid HTTP URL</a>
+<a href="http://www.ox.ac.uk/">valid HTTP URL</a>
+<a href="http://www.ox.ac.uk">valid HTTP URL</a>
 <a href="HTTP://www.billdietrich.me/">valid uppercase HTTP URL that redirects to HTTPS</a>
 <a href="HTTP://www.microsoft.com/">valid uppercase HTTP URL that redirects to HTTPS</a>
 <br /><br />
@@ -122,10 +122,10 @@ link-href good: <link href="./testfile.html" /> and link-href bad: <link href=".
 <script src="./testfile.html">script; src; good;</script> and <script src="./nofile.html">script; src; bad;</script>.
 <br /><br />
 
-img-src good: <img src="./testfile.html" /> and img-src bad: <img src="./nofile.html" />.
+img-src good: <img src="./testfile.html" alt="" /> and img-src bad: <img src="./nofile.html" alt="" />.
 <br /><br />
 
-<a height="3" href="./nofile.html">Href not first attribute</a> and similar <img height="3" src="./nofile2.html" />.
+<a height="3" href="./nofile.html">Href not first attribute</a> and similar <img height="3" src="./nofile2.html" alt="" />.
 
 <br /><br />
 Link starting with "/": <script src="/testfile.html">script; src; good;</script>

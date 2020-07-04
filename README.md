@@ -55,6 +55,8 @@ While checking links, the Tor Browser can be running or not, it doesn't matter. 
 
 #### Opening Onion (Tor) links in Tor Browser
 
+[THIS FEATURE SEEMS TO BE BROKEN]
+
 To use `Alt+T` or `Alt+M` to open onion links in the Tor Browser, you must have Tor Browser installed and running already.  You have to launch it yourself; this extension won't launch it.
 
 Also, on Linux, you must install "xdotool":
@@ -246,6 +248,9 @@ or
 * Flag onion links where domain name is illegal length.
 * Moved xdotool command line strings into settings.  (Wayland will use ydotool ?)
 * Treat onion links that start with "http:" as clearnet links.
+
+### 3.3.0
+* Somehow using xdotool to send onion links to Tor Browser has stopped working.
 
 ---
 
