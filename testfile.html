@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<title>Test Page for linkcheckerhtml extension</title>
+</head>
+<body>
+
+Local files:
+
+<a name="validname">&nbsp;</a>
+<a id="validid">&nbsp;</a>
+<div id="validid2" role="none">&nbsp;</div>
+Some random text with <a href="./to/a/missing/file.html">a link to a missing local file</a>.
+Some random text with <a href="./to/a/missing/file">a link to a missing local file</a>.
+<br /><br />
+Some random text with <a href="./testfile.html">a link to a valid local file</a>.
+Some random text with <a href="./testfile">same valid local file with filename extension added by VSCode extension</a>.
+<br /><br />
+This next one doesn't get caught:
+More random text with <a href="./testfile.html#nosuchname">a link to a valid local file but invalid name inside</a>.
+<br /><br />
+Another <a href="#nosuchname">link to this file but invalid name inside</a>.
+<br /><br />
+More random text with <a href="./testfile.html#validname">a link to a valid local file and valid name inside</a>.
+More random text with <a href="./testfile#validname">a link to an invalid local file and valid name inside</a>.
+More random text with <a href="./testfile.html?expandall=1#validname">a link to a valid local file and valid name inside</a>.
+<br /><br />
+More random text with <a href="#validname">a link to a current file and valid name</a>.
+Similar <a href="#validid">a link to a current file and valid id</a>.
+Similar <a href="#validid2">a link to a current file and valid id</a>.
+<br /><br />
+Another <a href="#nosuchname">link to this file but invalid name inside</a>.
+<br /><br />
+<a name="duplicatename">&nbsp;</a>
+<a name="duplicatename">&nbsp;</a>
+<a id="duplicatename">&nbsp;</a>
+<a href="#duplicatename">link to this file with valid name inside</a>.
+<br /><br />
+Local file with ? arg: <a href="./testfile.html?abc=123&def=456">link to this file with question mark</a>.
+<br /><br />
+<!--
+	Checks links inside comments, probably better if it didn't
+Bad local file with ? arg: <a href="./nosuchfile.html?abc">link to this file with question mark</a>.
+-->
+<br /><br />
+
+Remote URLs:
+
+<a href="https://www.billdietrich.me/">valid HTTPS URL</a>
+<a href="https://www.billdietrich.me">valid HTTPS URL</a>
+<a href="http://www.ox.ac.uk/">valid HTTP URL</a>
+<a href="http://www.ox.ac.uk">valid HTTP URL</a>
+<a href="HTTP://www.billdietrich.me/">valid uppercase HTTP URL that redirects to HTTPS</a>
+<a href="HTTP://www.microsoft.com/">valid uppercase HTTP URL that redirects to HTTPS</a>
+<br /><br />
+<a href="https://www.billdietrich.me/Computers.html">valid page on HTTPS site</a>
+This next one doesn't get caught:
+<a href="https://www.billdietrich.me/Computers.html#nosuchname">valid page with bad target on HTTPS site</a>
+<a href="http://www.billdietrich.me/Computers.html">valid page on HTTP site, redirects to HTTPS</a>
+<a href="https://www.billdietrich.me/nosuchpage.html">invalid page on HTTPS site, redirects to 404 page</a>
+<a href="http://www.billdietrich.me/nosuchpage.html">invalid page on HTTP site, redirects to 404 page on HTTPS</a>
+
+<a href="HTTPS://microsoft.com/sporf">invalid page on HTTPS that redirects to a 404-type page</a>
+<a href="http://microsoft.com/sporf">invalid page on HTTP that redirects to a 404-type page on HTTPS</a>
+
+Numeric URLs:
+<a href="https://1.2.3.4/">invalid page</a>
+IPv6:
+<a href="https://[2600::]/">valid page: Sprint</a>
+<a href="https://[99999::]/">invalid page</a>
+Local URLs:
+<a href="http://localhost/">this machine</a>
+<a href="http://192.168.0.1/">local router</a>
+<a href="https://192.168.0.1/">local router</a>
+Local IPv6:
+<a href="http://[::1]/">equivalent of localhost</a>
+<a href="https://[::1]/">equivalent of localhost</a>
+<a href="https://[FC00::1]/">invalid page</a>
+<a href="https://[FD00::1]/">invalid page</a>
+
+<!-- 
+<a href="http://microsoft.com/sporf1">bad</a>
+-->
+
+Unsupported schemes:
+
+Or an <a href="ftp://microsoft.com">FTP link</a>.
+<br /><br />
+A <a href="news:rec.boats.cruising">USENET link</a>.
+<br /><br />
+Two links on one line <a href="ftp://xxx">FTP link2</a> and <a href="ftp://zzz">FTP link3</a>.
+<br /><br />
+Two identical-target links on one line <a href="./nofile.html">first</a> and <a href="./nofile.html">second</a>.
+<br /><br />
+
+Mailto links:
+
+<a href="mailto:a1b2C3@yahoo.com">well-formed</a>
+<a href="mailto:a1b2C3@yahoo">badly-formed</a>
+<a href="mailto:a1b2C3yahoo.com">badly-formed</a>
+<a href="mailto:a1b2C3@yahoo.com?Subject=xxx">well-formed</a>
+<a href="mailto:a1b2C3@yahoo.com?">badly-formed</a>
+<br /><br />
+
+Onion links:
+
+<a href="https://3g2upl4pq6kufc4m.onion/">valid page: DuckDuckGo</a>
+<a href="https://3g22222222222222.onion/">invalid page</a>
+<a href="http://3g2upl4pq6kufc4m.onion/">valid page: DuckDuckGo but HTTP</a>
+<a href="http://3g44444444444444.onion/">invalid page but HTTP</a>
+<a href="https://3g11.onion/">domain name wrong length</a>
+<a href="https://01234567890123456789012345678901234567890123456789012345.onion/">invalid page but right length</a>
+<br /><br />
+
+
+<a href="https://github.com/robbyrussell/oh-my-zsh">redirects</a>
+
+
+link-href good: <link href="./testfile.html" /> and link-href bad: <link href="./nofile.html" />.
+<br /><br />
+
+<script src="./testfile.html">script; src; good;</script> and <script src="./nofile.html">script; src; bad;</script>.
+<br /><br />
+
+img-src good: <img src="./testfile.html" alt="" /> and img-src bad: <img src="./nofile.html" alt="" />.
+<br /><br />
+
+<a height="3" href="./nofile.html">Href not first attribute</a> and similar <img height="3" src="./nofile2.html" alt="" />.
+
+<br /><br />
+Link starting with "/": <script src="/testfile.html">script; src; good;</script>
+Link starting with "/": <script src="/nosuchfile.html">script; src; bad;</script>
+
+
+<br /><br />
+Things from XML and RSS that should not be checked in an HTML file:
+<link>nosuchfile.html</link>
+<picture url="nosuchfile.html" /> 
+<homepage xlink:type="simple" xlink:href="nosuchfile.html">any name here</homepage>
+
+
+Bad chars:
+�
+�
+�
+�
+�
+�
+aaa�bbb
+�
+aaa��bbb
+aaa�bbb�ccc
+�
+�
+End of bad chars
+®
+tabs	are	okay
+
+Common typos:
+<a hreef="./testfile.html">test file</a>
+
+Missing contents:
+<img src="" />
+<img src=""/>
+<a href="">test1</a>
+<a href="./testfile.html"></a>
+<h1></h1>
+<h2></h2>
+<h3></h3>
+<h4></h4>
+<h5></h5>
+<b></b>
+<i></i>
+<u></u>
+
+
+</body>
+</html>

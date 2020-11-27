@@ -1,0 +1,250 @@
+{
+	"name": "linkcheckerhtml",
+	"displayName": "HTML / XML / RSS link checker",
+	"description": "Alt+H checks for broken links in an HTML, XML, or RSS file.  Alt+T sends currently-selected URL to browser.  Alt+M sends HTTPS version of currently-selected HTTP URL to browser.  Alt+L clears diagnostic messages.",
+	"author": {
+		"name": "Bill Dietrich"
+	},
+	"icon": "linkcheckerhtmlicon.png",
+	"version": "4.0.0",
+	"publisher": "BillDietrich",
+	"galleryBanner": {
+		"color": "#0000FF",
+		"theme": "dark"
+	},
+	"license": "SEE LICENSE IN LICENSE.md",
+	"bugs": {
+		"url": "https://github.com/BillDietrich/linkcheckerhtml/issues",
+		"email": "gith4@billdietrich.me"
+	},
+	"homepage": "https://github.com/BillDietrich/linkcheckerhtml/blob/master/README.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/BillDietrich/linkcheckerhtml.git"
+	},
+	"categories": [
+		"Linters",
+		"Other"
+	],
+	"keywords": [
+		"HTML",
+		"XML",
+		"RSS",
+		"broken",
+		"link"
+	],
+	"engines": {
+		"vscode": "^1.29.0"
+	},
+	"activationEvents": [
+		"onLanguage:html",
+		"onLanguage:xml",
+		"onLanguage:rss"
+	],
+	"main": "./out/extension",
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+	},
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.generateLinkReport",
+				"title": "Generate a broken-link report",
+				"category": "HTML",
+				"when": "editorFocus"
+			},
+			{
+				"command": "extension.openURL",
+				"title": "Open an URL in the browser",
+				"category": "HTML",
+				"when": "editorHasSelection"
+			},
+			{
+				"command": "extension.openURLasHTTPS",
+				"title": "Open HTTPS equivalent of an HTTP URL in the browser",
+				"category": "HTML",
+				"when": "editorHasSelection"
+			},
+			{
+				"command": "extension.clearDiagnostics",
+				"title": "Clear all diagnostics belonging to this extension",
+				"category": "HTML"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "extension.generateLinkReport",
+				"key": "Alt+H"
+			},
+			{
+				"command": "extension.openURL",
+				"key": "Alt+T"
+			},
+			{
+				"command": "extension.openURLasHTTPS",
+				"key": "Alt+M"
+			},
+			{
+				"command": "extension.clearDiagnostics",
+				"key": "Alt+L"
+			}
+		],
+		"configuration": [
+			{
+				"type": "object",
+				"title": "HTML / XML / RSS link checker",
+				"properties": {
+					"linkcheckerhtml.checkMailtoDestFormat": {
+						"type": "boolean",
+						"default": true,
+						"description": "Check format of email addresses in mailto links."
+					},
+					"linkcheckerhtml.maxParallelThreads": {
+						"type": "number",
+						"default": 20,
+						"description": "Maximum number of links to check in parallel (range is 1 to 20)."
+					},
+					"linkcheckerhtml.timeout": {
+						"type": "number",
+						"default": 15,
+						"description": "Timeout (seconds) for accessing a link (range is 5 to 30)."
+					},
+					"linkcheckerhtml.reportBadChars": {
+						"type": "string",
+						"enum": [
+							"as Error",
+							"as Warning",
+							"as Information",
+							"as Hint",
+							"Don't report"
+						],
+						"default": "as Information",
+						"description": "Report possible bad characters ?"
+					},
+					"linkcheckerhtml.patternBadChars": {
+						"type": "string",
+						"default": "[^\\x09-\\x7E]",
+						"description": "RegEx pattern to match possible bad characters."
+					},
+					"linkcheckerhtml.reportPossibleMistakes": {
+						"type": "string",
+						"enum": [
+							"as Error",
+							"as Warning",
+							"as Information",
+							"as Hint",
+							"Don't report"
+						],
+						"default": "as Warning",
+						"description": "Report possible mistakes such as empty tags or attributes ?"
+					},
+					"linkcheckerhtml.patternsPossibleMistakes": {
+						"type": "string",
+						"default": " href=\"\", src=\"\", hreef=\",\"></a>,<h1></h1>,<h2></h2>,<h3></h3>,<h4></h4>,<b></b>,<i></i>,<u></u>",
+						"description": "Comma-separated list of RegEx patterns to match possible mistakes."
+					},
+					"linkcheckerhtml.reportNonHandledSchemes": {
+						"type": "string",
+						"enum": [
+							"as Error",
+							"as Warning",
+							"as Information",
+							"as Hint",
+							"Don't report"
+						],
+						"default": "as Information",
+						"description": "Report links with URI schemes not checked by the checker, such as FTP and Telnet ?"
+					},
+					"linkcheckerhtml.reportRedirects": {
+						"type": "string",
+						"enum": [
+							"as Error",
+							"as Warning",
+							"as Information",
+							"as Hint",
+							"Don't report"
+						],
+						"default": "as Warning",
+						"description": "Report links that get redirected ?"
+					},
+					"linkcheckerhtml.localRoot": {
+						"type": "string",
+						"default": ".",
+						"description": "String prepended to links that start with '/'."
+					},
+					"linkcheckerhtml.userAgent": {
+						"type": "string",
+						"default": "Mozilla/5.0 (X11; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0",
+						"description": "User-Agent value used in Get requests."
+					},
+					"linkcheckerhtml.checkInternalLinks": {
+						"type": "boolean",
+						"default": true,
+						"description": "Check #name links to targets inside current file."
+					},
+					"linkcheckerhtml.processIdAttributeInAnyTag": {
+						"type": "boolean",
+						"default": true,
+						"description": "#name link can be to any tag with ID attribute inside current file."
+					},
+					"linkcheckerhtml.reportHTTPSAvailable": {
+						"type": "string",
+						"enum": [
+							"as Error",
+							"as Warning",
+							"as Information",
+							"as Hint",
+							"Don't check for HTTPS"
+						],
+						"default": "as Information",
+						"description": "Report if HTTP links have HTTPS equivalents that work ?"
+					},
+					"linkcheckerhtml.dontCheckURLsThatStartWith": {
+						"type": "string",
+						"default": "127.,192.,localhost,[::1],[FC00:,[FD00:",
+						"description": "Don't check URLs that start with any sequence in this comma-separated list."
+					},
+					"linkcheckerhtml.addExtensionToLocalURLsWithNone": {
+						"type": "string",
+						"default": "",
+						"description": "If a local file URL has no extension, add this extension to the filename before checking."
+					},
+					"linkcheckerhtml.torOpenURLCmd1": {
+						"type": "string",
+						"default": "sh -c \"xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 ctrl+t type ",
+						"description": "Run this command (1) to open an URL in Tor Browser ('URL' will be appended)"
+					},
+					"linkcheckerhtml.torOpenURLCmd2": {
+						"type": "string",
+						"default": "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 Return",
+						"description": "Run this command (2) to open an URL in Tor Browser"
+					}
+				}
+			}
+		]
+	},
+	"devDependencies": {
+		"@types/node": "^8.10.25",
+		"typescript": "*",
+		"vsce": "^1.70.0",
+		"vscode": "^1.1.36"
+	},
+	"dependencies": {
+		"array-buffer-to-hex": "^1.0.0",
+		"axios": "^0.19.0",
+		"braces": "^3.0.2",
+		"diff": "^4.0.1",
+		"event-stream": "^4.0.1",
+		"fs": "^0.0.1-security",
+		"fstream": "^1.0.12",
+		"gulp-untar": "0.0.8",
+		"path": "^0.12.7",
+		"tar": "^5.0.5",
+		"tor-control": "0.0.3",
+		"tor-request": "^3.1.0"
+	}
+}
