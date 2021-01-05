@@ -235,7 +235,7 @@
 	},
 	"dependencies": {
 		"array-buffer-to-hex": "^1.0.0",
-		"axios": "^0.19.0",
+		"axios": "^0.21.1",
 		"braces": "^3.0.2",
 		"diff": "^4.0.1",
 		"event-stream": "^4.0.1",
