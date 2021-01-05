@@ -15,6 +15,8 @@ Also checks for broken links in currently-open XML or RSS file.
 
 Optionally checks for invalid characters and common mistakes (missing tag content, empty attribute value, more).
 
+Also checks for errors in a small subset of semantic HTML tags: checks that each page has header, main, footer; checks that each heading is inside a section, article, or aside; checks that each section/article/aside has exactly one heading in it; checks that heading values are nested properly.
+
 
 ## Use
 Open an editor window on an HTML, XML, or RSS file, and then press `Alt+H`.
@@ -71,6 +73,37 @@ Then for any bad onion link reported in the diagnostics, do ```Alt+T``` on it.  
 
 The connection to Tor Browser is not 100% reliable.  The extension is using xdotools to send key-presses to the Tor Browser, and it's fairly timing-dependent and one-way.  If your system is busy, or Tor Browser is busy, or something else goes wrong, you may see the wrong things happen in Tor Browser (chars missing from the URL, or some dialogs popping open).
 
+### Semantic HTML
+
+The body of the page is expected to be structured like:
+```
+<body>
+<header>STUFF</header>
+<main>
+
+<section>
+<h1>HEADING</h1>
+CONTENT
+
+<section>
+<h2>HEADING</h2>
+MORE CONTENT
+</section>
+
+...
+
+</section>
+
+</main>
+<footer>STUFF</footer>
+</body>
+```
+
+This structure should increase the SEO and accessibility of your web pages.
+
+If your pages are not structured like this, or you just don't want to bother checking Semantic HTML, change the setting "reportSemanticErrors" to "Don't report".
+
+If a heading outside of any section and outside of main is found, it is assumed that your page is not using Semantic HTML at all, and no further checking of Semantic HTML is done.
 
 ### Settings
 
@@ -102,13 +135,15 @@ The connection to Tor Browser is not 100% reliable.  The extension is using xdot
 
 * **reportRedirect**: Report links that get redirected (default is "as Warning").
 
+* **reportSemanticErrors**: Report errors in semantic HTML tags such as main, section, article, aside, h1, etc (default is "as Information").
+
 * **timeout**: Timeout (seconds) for accessing a link (range is 5 to 30; default is 15).
 
 * **torOpenURLCmd1**: command (1) to open an URL in Tor Browser ('URL' will be appended; default is "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 ctrl+t type --delay 100 "
 
 * **torOpenURLCmd2**: command (2) to open an URL in Tor Browser (default is "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 Return").
 
-* **userAgent**: User-Agent value used in Get requests (default is "Mozilla/5.0 (X11; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0").
+* **userAgent**: User-Agent value used in Get requests (default is "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0").
 
 
 ### Limitations
@@ -143,7 +178,12 @@ And checking is getting harder, with more URLs redirecting through GDPR-consent 
 * The checking in XML and RSS files is permissive, allowing known stuff from RSS, and likely stuff that could be in XML.  Any attribute of the form *url="something" or *href="something" will be checked, as well as the standard RSS tags: link, guid, url.
 
 * Onion: an URL is considered "onion" if it starts with "https://" and contains ".onion" ANYWHERE in it.
+
 * Onion: if an URL starts with "http://", it will be treated as non-Onion, and the "https://" form of it will be checked as non-Onion too.
+
+* Semantic HTML: assumes that a section/article/aside will have a heading in it before it has any sub-section/article/aside.
+
+* Semantic HTML: section/article/aside without heading will be flagged (correctly) but may screw up the tracking of headings from that point on.  Fix first such error and then scan again.
 
 ---
 
@@ -269,11 +309,15 @@ or
 * Various code cleanup.
 * Made regex's case-insensitive.
 
+### 5.0.0
+* Added checking for semantic HTML errors.
+* Updated default user-agent string to Firefox 84.
 ---
 
 
 ## Development
 ### To-Do list
+* Maybe new axios has broken timeout ?
 * Somehow using xdotool to open onion link in Tor Browser has gotten broken.
 * Test onion links a lot more, maybe indicate redirects, any way to control timeout, set user-agent.
 * Better way to open onion link in Tor Browser ?
@@ -281,7 +325,6 @@ or
 * Add setting "do/don't check onion links".
 * Snap version of VSCode uses `Alt+H` for Help menu.
 * Create automated tests.
-* A lot of code cleanup needed, move stuff into functions.
 * Extension really is supposed to remove each diagnostic line after the corresponding source line is edited.
 * Bundle extension to make it smaller/faster ? https://code.visualstudio.com/api/working-with-extensions/bundling-extension
 * Can't really test IPv6 because my system and ISP have it turned off.

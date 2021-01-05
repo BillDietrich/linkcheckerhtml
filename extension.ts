@@ -93,6 +93,10 @@ var gHTTPSAvailableSeverity: DiagnosticSeverity = DiagnosticSeverity.Information
 var gsReportRedirects: string = "";
 var gReportRedirectSeverity: DiagnosticSeverity = DiagnosticSeverity.Error;
 
+var gbReportSemanticErrors: boolean = true;
+var gsReportSemanticErrors: string = "";
+var gSemanticSeverity: DiagnosticSeverity = DiagnosticSeverity.Information;
+
 var gsUserAgent: string = "";
 
 var gsLocalRoot: string = "";
@@ -168,7 +172,7 @@ const runShellCommand = async (command: string): Promise<any> => {
                 reject(stderr);
 				return;
             }
-            resolve();
+            resolve(null);
         });
     });
 }
@@ -464,6 +468,7 @@ export function readConfiguration() {
 		case 'E':
 		case 'W':
 		case 'I':
+		case 'H':
 				gbReportPossibleMistakes = true;
 				break;
 	}
@@ -503,6 +508,7 @@ export function readConfiguration() {
 		case 'E':
 		case 'W':
 		case 'I':
+		case 'H':
 				gbReportHTTPSAvailable = true;
 				break;
 	}
@@ -543,6 +549,26 @@ export function readConfiguration() {
 		case 'H': gReportRedirectSeverity = DiagnosticSeverity.Hint; break;
 	}
 	//gOutputChannel.appendLine(`readConfiguration: gsReportRedirects ${gsReportRedirects}`);
+
+	gsReportSemanticErrors = gConfiguration.reportSemanticErrors;
+	gSemanticSeverity = DiagnosticSeverity.Information;
+	switch (gsReportSemanticErrors[3]) {
+		case 'E': gSemanticSeverity = DiagnosticSeverity.Error; break;
+		case 'W': gSemanticSeverity = DiagnosticSeverity.Warning; break;
+		case 'I': gSemanticSeverity = DiagnosticSeverity.Information; break;
+		case 'H': gSemanticSeverity = DiagnosticSeverity.Hint; break;
+	}
+	//gOutputChannel.appendLine(`readConfiguration: gsReportSemanticErrors ${gsReportSemanticErrors}`);
+
+	gbReportSemanticErrors = false;
+	switch (gsReportSemanticErrors[3]) {
+		case 'E':
+		case 'W':
+		case 'I':
+		case 'H':
+				gbReportSemanticErrors = true;
+				break;
+	}
 
 	gsUserAgent = gConfiguration.userAgent;
 	//gOutputChannel.appendLine(`readConfiguration: gsUserAgent '${gsUserAgent}'`);
@@ -652,8 +678,16 @@ function generateLinkReport() {
 		});
 	}
 
+	if (gbReportSemanticErrors) {
+		// scan text for possible errors in semantic HTML
+		let p5 = scanSemanticHTML(gDocument);
+		p5.then((sResult) => {
+		    //gOutputChannel.appendLine(`generateLinkReport.p5.then: called`);
+		});
+	}
+
 	// Possible race-condition if there are no tags to check ?
-	// We never wait for p3 and p4 to complete.
+	// We never wait for p3-p5 to complete.
 
 	gLocalAnchorNames = new Array<string>();
 
@@ -1554,6 +1588,221 @@ function checkPossibleMistakes(document: TextDocument): Promise<string> {
 
 		}
 	    //gOutputChannel.appendLine(`checkPossibleMistakes promise returning`);
+        resolve("done");
+    }).catch();
+}
+
+
+//------------------------------------------------------------------------------
+
+// Scan document for semantic HTML.
+//
+// Doesn't try to catch errors such as mismatched or missing end tags.
+// The editor will catch those.
+
+function scanSemanticHTML(document: TextDocument): Promise<string> {
+
+    //gOutputChannel.appendLine(`scanSemanticHTML called, document.uri '${document.uri}'`);
+
+	var bInBody = false;
+	var bFoundHeader = false;
+	var bFoundMain = false;
+	var bFoundFooter = false;
+	var bInMain = false;
+	var bInSection = false;		// includes section, article, aside
+	var bFoundHeadingInSection = false;
+	var nCurrentHeadingLevel = 0;
+	var nLinesInMain = 0;
+	var nLinesInMainAndInSection = 0;
+	var nLineNumberOfMain = 0;
+	var arrnPrevHeadingLevel = new Array();
+
+    // Return a promise, since this might take a while for large documents
+    return new Promise<string>((resolve, reject) => {
+        
+        // Get lines in the document
+        let lineCount = document.lineCount;
+        
+        // Loop over the lines in a document
+        for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
+            // Get the text for the current line
+            let lineText = document.lineAt(lineNumber);
+
+			if (bInMain) {
+				nLinesInMain++;
+				if (bInSection)
+					nLinesInMainAndInSection++;
+			}
+
+			// order of checks matters if there are multiple tags on one line
+        
+			var aMatches = lineText.text.match(RegExp("<header", "i"));
+			if (aMatches) {
+				//gOutputChannel.appendLine(`scanSemanticHTML: match start-header`);
+				bFoundHeader = true;
+			}
+        
+			var aMatches = lineText.text.match(RegExp("<main", "i"));
+			if (aMatches) {
+				//gOutputChannel.appendLine(`scanSemanticHTML: match start-main`);
+				bFoundMain = true;
+				bInMain = true;
+			}
+        
+			var aMatches = lineText.text.match(RegExp("<section|<article|<aside", "i"));
+			if (aMatches) {
+				//gOutputChannel.appendLine(`scanSemanticHTML: match start-section`);
+				bInSection = true;
+
+				if (!bInMain) {
+					addDiagnostic(
+						lineNumber,
+						lineText.text.indexOf(aMatches[0]),
+						aMatches[0].length,
+						gSemanticSeverity,
+						`Semantic HTML: Start of section/article/aside but not inside main: '${aMatches[0]}'`
+						);
+				}
+
+				bFoundHeadingInSection = false;
+			}
+        
+			var aMatches = lineText.text.match(RegExp("<h1|<h2|<h3|<h4|<h5|<h6|<h7|<h8|<h9", "i"));
+			if (aMatches) {
+				//gOutputChannel.appendLine(`scanSemanticHTML: match start-heading; aMatches[0][2] '${aMatches[0][2]}'`);
+
+				if (!bInSection) {
+					addDiagnostic(
+						lineNumber,
+						lineText.text.indexOf(aMatches[0]),
+						aMatches[0].length,
+						gSemanticSeverity,
+						`Semantic HTML: Heading '${aMatches[0]}' not inside section/article/aside`
+						);
+					// maybe this page is not using Semantic HTML at all ?
+					if (!bInMain) {
+						addDiagnostic(
+							lineNumber,
+							lineText.text.indexOf(aMatches[0]),
+							aMatches[0].length,
+							gSemanticSeverity,
+							`Semantic HTML: Heading '${aMatches[0]}' not inside main either; stopping checks of semantic HTML`
+							);
+						break;	// end the loop
+					}
+				} else {
+					if (bFoundHeadingInSection) {
+						addDiagnostic(
+							lineNumber,
+							lineText.text.indexOf(aMatches[0]),
+							aMatches[0].length,
+							gSemanticSeverity,
+							`Semantic HTML: More than one heading inside section/article/aside`
+							);
+					}
+					bFoundHeadingInSection = true;
+				}
+
+				var c = Number(aMatches[0][2]);
+				var z = Number('0');
+				var nNewHeadingLevel = c - z;
+				//gOutputChannel.appendLine(`scanSemanticHTML: nNewHeadingLevel ${nNewHeadingLevel}, nCurrentHeadingLevel ${nCurrentHeadingLevel}`);
+
+				if (nNewHeadingLevel <= nCurrentHeadingLevel) {
+					addDiagnostic(
+						lineNumber,
+						lineText.text.indexOf(aMatches[0]),
+						aMatches[0].length,
+						gSemanticSeverity,
+						`Semantic HTML: Existing section contains new section with same or lower heading level '${aMatches[0]}'`
+						);
+				} else {
+					arrnPrevHeadingLevel.push(nCurrentHeadingLevel);
+					nCurrentHeadingLevel = nNewHeadingLevel;
+				}
+			}
+        
+			var aMatches = lineText.text.match(RegExp("</h1|</h2|</h3|</h4|</h5|</h6|</h7|</h8|</h9", "i"));
+			if (aMatches) {
+				//gOutputChannel.appendLine(`scanSemanticHTML: match start-heading`);
+			}
+        
+			var aMatches = lineText.text.match(RegExp("</section|</article|</aside", "i"));
+			if (aMatches) {
+				//gOutputChannel.appendLine(`scanSemanticHTML: match end-section`);
+
+				if (!bFoundHeadingInSection) {
+					addDiagnostic(
+						lineNumber,
+						lineText.text.indexOf(aMatches[0]),
+						aMatches[0].length,
+						gSemanticSeverity,
+						`Semantic HTML: No heading in section/article/aside '${aMatches[0]}'`
+						);
+				} else {
+					nNewHeadingLevel = arrnPrevHeadingLevel.pop();
+					//gOutputChannel.appendLine(`scanSemanticHTML: nNewHeadingLevel ${nNewHeadingLevel}, nCurrentHeadingLevel ${nCurrentHeadingLevel}`);
+					nCurrentHeadingLevel = nNewHeadingLevel;
+					if (nCurrentHeadingLevel == 0)
+						bInSection = false;
+				}
+			}
+        
+			var aMatches = lineText.text.match(RegExp("</main", "i"));
+			if (aMatches) {
+				//gOutputChannel.appendLine(`scanSemanticHTML: match end-main`);
+				bInMain = false;
+			}
+        
+			var aMatches = lineText.text.match(RegExp("<footer", "i"));
+			if (aMatches) {
+				//gOutputChannel.appendLine(`scanSemanticHTML: match start-footer`);
+				bFoundFooter = true;
+			}
+
+		}
+
+		if (!bFoundHeader) {
+			addDiagnostic(
+				0,
+				0,
+				5,
+				gSemanticSeverity,
+				`Semantic HTML: No 'header' in document`
+				);
+		}
+
+		if (!bFoundMain) {
+			addDiagnostic(
+				0,
+				0,
+				5,
+				gSemanticSeverity,
+				`Semantic HTML: No 'main' in document`
+				);
+		}
+
+		if (!bFoundFooter) {
+			addDiagnostic(
+				0,
+				0,
+				5,
+				gSemanticSeverity,
+				`Semantic HTML: No 'footer' in document`
+				);
+		}
+
+		if (nLinesInMain > 0) {
+			addDiagnostic(
+				nLineNumberOfMain,
+				0,
+				5,
+				DiagnosticSeverity.Information,
+				`Semantic HTML: ${nLinesInMainAndInSection} lines in sections out of ${nLinesInMain} total lines in main: ${Math.round((nLinesInMainAndInSection*100)/nLinesInMain)}%`
+				);
+		}
+
+	    //gOutputChannel.appendLine(`scanSemanticHTML promise returning`);
         resolve("done");
     }).catch();
 }
