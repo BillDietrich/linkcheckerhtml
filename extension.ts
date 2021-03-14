@@ -6,10 +6,10 @@
 // Some things from 'vscode', which contains the VS Code extensibility API
 import {
     workspace,
-    window, 
-    commands, 
-    languages, 
-    Diagnostic, 
+    window,
+    commands,
+    languages,
+    Diagnostic,
     DiagnosticSeverity,
     DiagnosticCollection,
 	ExtensionContext,
@@ -695,6 +695,7 @@ function generateLinkReport() {
     var p1 = null;
 	switch (gDocument.languageId) {
 		case 'html': p1 = getHtmlLinks(gDocument); break;
+		case 'php': p1 = getHtmlLinks(gDocument); break;
 		case 'xml': p1 = getXmlRssLinks(gDocument); break;
 		// apparently RSS gets reported as XML
 	}

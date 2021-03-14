@@ -1,12 +1,12 @@
 {
 	"name": "linkcheckerhtml",
 	"displayName": "HTML / XML / RSS link checker",
-	"description": "Alt+H checks for broken links in an HTML, XML, or RSS file.  Alt+T sends currently-selected URL to browser.  Alt+M sends HTTPS version of currently-selected HTTP URL to browser.  Alt+L clears diagnostic messages.",
+	"description": "Alt+H checks for broken links in an HTML, XML, RSS, or PHP file.  Alt+T sends currently-selected URL to browser.  Alt+M sends HTTPS version of currently-selected HTTP URL to browser.  Alt+L clears diagnostic messages.",
 	"author": {
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "5.0.0",
+	"version": "5.1.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -30,6 +30,7 @@
 		"HTML",
 		"XML",
 		"RSS",
+		"PHP",
 		"broken",
 		"link"
 	],
@@ -39,7 +40,8 @@
 	"activationEvents": [
 		"onLanguage:html",
 		"onLanguage:xml",
-		"onLanguage:rss"
+		"onLanguage:rss",
+		"onLanguage:php"
 	],
 	"main": "./out/extension",
 	"scripts": {
@@ -190,7 +192,7 @@
 					},
 					"linkcheckerhtml.userAgent": {
 						"type": "string",
-						"default": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0",
+						"default": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:86.0) Gecko/20100101 Firefox/86.0",
 						"description": "User-Agent value used in Get requests."
 					},
 					"linkcheckerhtml.checkInternalLinks": {

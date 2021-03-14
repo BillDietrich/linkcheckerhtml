@@ -312,11 +312,17 @@ or
 ### 5.0.0
 * Added checking for semantic HTML errors.
 * Updated default user-agent string to Firefox 84.
+
+### 5.1.0
+* Added support of PHP files as if they were HTML files.
+* Updated default user-agent string to Firefox 86.
 ---
 
 
 ## Development
 ### To-Do list
+* Add support for Markdown files.
+* Add tasks to open and close all HTML files in directory, so linter reports any errors.
 * Maybe new axios has broken timeout ?
 * Somehow using xdotool to open onion link in Tor Browser has gotten broken.
 * Test onion links a lot more, maybe indicate redirects, any way to control timeout, set user-agent.
@@ -358,6 +364,14 @@ In project directory:
 * ```npm audit fix```
 
 * ```sudo npm -g install --save axios```
+
+
+[GitHub repo for this extension](https://github.com/BillDietrich/linkcheckerhtml)
+
+[Visual Studio Marketplace page for this extension](https://marketplace.visualstudio.com/items?itemName=BillDietrich.linkcheckerhtml)
+
+[My web site](https://www.billdietrich.me/)
+
 
 ---
 
