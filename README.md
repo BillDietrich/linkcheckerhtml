@@ -1,9 +1,9 @@
 # HTML / XML / RSS link checker
-VSCode extension that checks for broken links in an HTML, XML, or RSS file.
+VSCode extension that checks for broken links in an HTML, XML, RSS, or PHP file.
 
 
 ## Functionality
-Checks for broken links in anchor-href, link-href, img-src, and script-src tags in currently-open HTML file. It checks HTTP/HTTPS links by trying to access them on the internet, and checks relative links (../folder/file.html) by checking if the file exists on the local file system.
+Checks for broken links in anchor-href, link-href, img-src, and script-src tags in currently-open HTML or PHP file. It checks HTTP/HTTPS links by trying to access them on the internet, and checks relative links (../folder/file.html) by checking if the file exists on the local file system.
 
 Checks both clearnet and onion (Tor) links.
 
@@ -19,7 +19,7 @@ Also checks for errors in a small subset of semantic HTML tags: checks that each
 
 
 ## Use
-Open an editor window on an HTML, XML, or RSS file, and then press `Alt+H`.
+Open an editor window on an HTML, XML, RSS, or PHP file, and then press `Alt+H`.
 
 Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.
 
@@ -148,7 +148,7 @@ If a heading outside of any section and outside of main is found, it is assumed 
 
 ### Limitations
 
-* HTML: Tag name and href/src/id attribute must be on the same line.
+* HTML and PHP: Tag name and href/src/id attribute must be on the same line.
 
 * XML and RSS: Entire tag (for link, guid, and url tags) must be on the same line.
 
