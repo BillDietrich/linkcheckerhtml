@@ -1,5 +1,5 @@
 # HTML / XML / RSS link checker
-VSCode extension that checks for broken links in an HTML, XML, RSS, or PHP file.
+VSCode extension that checks for broken links in an HTML, XML, RSS, PHP, or Markdown file.
 
 
 ## Functionality
@@ -11,15 +11,15 @@ Also checks for badly-formatted mailto links, and duplicate local anchors (ancho
 
 Also checks for working HTTPS equivalents of HTTP links.
 
-Also checks for broken links in currently-open XML or RSS file.
+Also checks for broken links in currently-open XML or RSS or Markdown file.
 
 Optionally checks for invalid characters and common mistakes (missing tag content, empty attribute value, more).
 
-Also checks for errors in a small subset of semantic HTML tags: checks that each page has header, main, footer; checks that each heading is inside a section, article, or aside; checks that each section/article/aside has exactly one heading in it; checks that heading values are nested properly.
+Also checks for errors in a small subset of semantic HTML tags (in HTML and PHP files): checks that each page has header, main, footer; checks that each heading is inside a section, article, or aside; checks that each section/article/aside has exactly one heading in it; checks that heading values are nested properly.
 
 
 ## Use
-Open an editor window on an HTML, XML, RSS, or PHP file, and then press `Alt+H`.
+Open an editor window on an HTML, XML, RSS, PHP, or Markdown file, and then press `Alt+H`.
 
 Broken links are reported via the standard error/warning/information diagnostic icons in lower-left of UI.
 
@@ -75,7 +75,7 @@ The connection to Tor Browser is not 100% reliable.  The extension is using xdot
 
 ### Semantic HTML
 
-The body of the page is expected to be structured like:
+The body of the HTML page is expected to be structured like:
 ```
 <body>
 <header>STUFF</header>
@@ -143,7 +143,7 @@ If a heading outside of any section and outside of main is found, it is assumed 
 
 * **torOpenURLCmd2**: command (2) to open an URL in Tor Browser (default is "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 Return").
 
-* **userAgent**: User-Agent value used in Get requests (default is "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0").
+* **userAgent**: User-Agent value used in Get requests (default is "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:86.0) Gecko/20100101 Firefox/86.0").
 
 
 ### Limitations
@@ -184,6 +184,25 @@ And checking is getting harder, with more URLs redirecting through GDPR-consent 
 * Semantic HTML: assumes that a section/article/aside will have a heading in it before it has any sub-section/article/aside.
 
 * Semantic HTML: section/article/aside without heading will be flagged (correctly) but may screw up the tracking of headings from that point on.  Fix first such error and then scan again.
+
+* PHP: links are found if they look like links in HTML.  For example, the PHP code is expected to look something like:
+    
+    ```echo '<a href="https://example.com">test1</a><br />';```
+    
+    and not like:
+    
+    ```echo '<a href="https://' + theDomainName + '">test1</a><br />';```
+    
+    But the following would be okay:
+    
+    ```echo '<a href="https://example.com">' + theTextOfTheLink + '</a><br />';```
+
+* Markdown: in reference-style links, the URL will be checked, but there will be no check that both halves of a reference-style link exist.  A reference-style link looks like:
+    ```
+    [hobbit-hole] [1]
+    
+    [1]: <https://example.com/hobbithole.html> "Hobbit hole"
+    ```
 
 ---
 
@@ -316,12 +335,14 @@ or
 ### 5.1.0
 * Added support of PHP files as if they were HTML files.
 * Updated default user-agent string to Firefox 86.
+
+### 6.0.0
+* Added support of Markdown files.
 ---
 
 
 ## Development
 ### To-Do list
-* Add support for Markdown files.
 * Add tasks to open and close all HTML files in directory, so linter reports any errors.
 * Maybe new axios has broken timeout ?
 * Somehow using xdotool to open onion link in Tor Browser has gotten broken.
@@ -346,10 +367,10 @@ or
 I'm no expert on this stuff, maybe I'm doing some things stupidly.
 
 Now using:
-* Ubuntu MATE 20.04
-* VSCode deb 1.51.1 (which says Node.js: 12.14.1)
-* ```node --version```	# 10.19.0
-* ```npm --version```	# 6.14.4
+* Kubuntu 20.10
+* VSCode deb 1.54.2 (which says Node.js: 12.18.3)
+* ```node --version```	# v12.18.2
+* ```npm --version```	# npm --version
 * axios
 * path
 * fs

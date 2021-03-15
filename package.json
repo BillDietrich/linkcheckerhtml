@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "5.1.0",
+	"version": "6.0.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -31,6 +31,7 @@
 		"XML",
 		"RSS",
 		"PHP",
+		"Markdown",
 		"broken",
 		"link"
 	],
@@ -41,7 +42,8 @@
 		"onLanguage:html",
 		"onLanguage:xml",
 		"onLanguage:rss",
-		"onLanguage:php"
+		"onLanguage:php",
+		"onLanguage:markdown"
 	],
 	"main": "./out/extension",
 	"scripts": {

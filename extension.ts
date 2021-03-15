@@ -678,7 +678,8 @@ function generateLinkReport() {
 		});
 	}
 
-	if (gbReportSemanticErrors) {
+	if (gbReportSemanticErrors
+			&& ((gDocument.languageId == 'html')||(gDocument.languageId == 'php'))) {
 		// scan text for possible errors in semantic HTML
 		let p5 = scanSemanticHTML(gDocument);
 		p5.then((sResult) => {
@@ -697,6 +698,7 @@ function generateLinkReport() {
 		case 'html': p1 = getHtmlLinks(gDocument); break;
 		case 'php': p1 = getHtmlLinks(gDocument); break;
 		case 'xml': p1 = getXmlRssLinks(gDocument); break;
+		case 'markdown': p1 = getMarkdownLinks(gDocument); break;
 		// apparently RSS gets reported as XML
 	}
 	p1.then((links: Link[]) => {
@@ -1324,7 +1326,7 @@ function getHtmlLinks(document: TextDocument): Promise<Link[]> {
 
 //------------------------------------------------------------------------------
 
-// Parse the links out of and XML or RSS document.
+// Parse the links out of an XML or RSS document.
 //
 // It's very permissive, because XML doesn't really define standard tag and
 // attribute names.  So it allows known stuff from RSS, and likely stuff
@@ -1508,6 +1510,141 @@ function getXmlRssLinks(document: TextDocument): Promise<Link[]> {
 
 //------------------------------------------------------------------------------
 
+// Parse the links out of a Markdown document.
+//
+function getMarkdownLinks(document: TextDocument): Promise<Link[]> {
+    //gOutputChannel.appendLine(`getMarkdownLinks called, document.uri '${document.uri}'`);
+    // Return a promise, since this might take a while for large documents
+    return new Promise<Link[]>((resolve, reject) => {
+        // Create arrays to hold links as we parse them out
+        let linksToReturn = new Array<Link>();
+        // Get lines in the document
+        let lineCount = document.lineCount;
+		//gOutputChannel.appendLine(`getMarkdownLinks lineCount '${lineCount}'`);
+        
+        //Loop over the lines in a document
+        for (let lineNumber = 0; lineNumber < lineCount; lineNumber++) {
+            // Get the text for the current line
+            let lineText = document.lineAt(lineNumber);
+		    //gOutputChannel.appendLine(`getMarkdownLinks lineText.text '${lineText.text}'`);
+
+            // Are there links?
+
+			// Link or image looks like:  ](urlhere) or ](urlhere "texthere")
+		    //gOutputChannel.appendLine(`getMarkdownLinks match1`);
+            var links = lineText.text.match(/\]\([^ \)]*[ \)]/gi);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+				    //gOutputChannel.appendLine(`getMarkdownLinks match2`);
+                    var link = links[i].match(/\]\(([^ \)]*)/);
+                    let address = link[1];
+				    //gOutputChannel.appendLine(`getMarkdownLinks address1 '${address}'`);
+					if (!DontCheck(address)) {
+						// Push it to the array
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: false
+						});
+						if (gbReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
+					}
+                }
+            }
+
+			// Reference-style link looks like:  ]: <urlhere>
+			// where space is mandatory but <> are optional.
+			// Do with-<> case first.
+		    //gOutputChannel.appendLine(`getMarkdownLinks match3`);
+            var links = lineText.text.match(/\]:\s+<[^>]*>/gi);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+				    //gOutputChannel.appendLine(`getMarkdownLinks match4`);
+                    var link = links[i].match(/\]:\s+<([^>]*)>/);
+                    let address = link[1];
+				    //gOutputChannel.appendLine(`getMarkdownLinks address2 '${address}'`);
+					if (!DontCheck(address)) {
+						// Push it to the array
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: false
+						});
+						if (gbReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
+					}
+                }
+            }
+
+			// Reference-style link looks like:  ]: <urlhere>
+			// where space is mandatory but <> are optional.
+			// Do without-<> case.
+		    //gOutputChannel.appendLine(`getMarkdownLinks match5`);
+            var links = lineText.text.match(/\]:\s+[^<>\s]*\s+/gi);
+            if (links) {
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+				    //gOutputChannel.appendLine(`getMarkdownLinks match6`);
+                    var link = links[i].match(/\]:\s+([^\s]*)\s+/);
+                    let address = link[1];
+				    //gOutputChannel.appendLine(`getMarkdownLinks address2 '${address}'`);
+					if (!DontCheck(address)) {
+						// Push it to the array
+						linksToReturn.push({
+							text: link[0],
+							address: address,
+							lineText: lineText,
+							bDoHTTPSForm: false
+						});
+						if (gbReportHTTPSAvailable && isPlainHttpLink(address)) {
+							// add HTTPS form of it to array also
+							linksToReturn.push({
+								text: link[0],
+								address: address,
+								lineText: lineText,
+								bDoHTTPSForm: true
+							});
+						}
+					}
+                }
+            }
+		}
+
+	    //gOutputChannel.appendLine(`getMarkdownLinks promise returning, linksToReturn.length ${linksToReturn.length}`);
+        if (linksToReturn.length > 0) {
+            //Return the populated array, which completes the promise.
+            resolve(linksToReturn);
+        } else {
+            //Reject, because we found no links
+            reject;
+        }
+    }).catch();
+}
+
+
+//------------------------------------------------------------------------------
+
 // Scan document for possible bad chars.
 function checkBadChars(document: TextDocument): Promise<string> {
 
@@ -1568,7 +1705,7 @@ function checkPossibleMistakes(document: TextDocument): Promise<string> {
 			for (let nPossMist = 0; nPossMist < gaPatternPossibleMistakes.length; nPossMist++) {
 				var sPossMist = gaPatternPossibleMistakes[nPossMist];
 				//sPossMist = "<h1></h1>"
-				//gOutputChannel.appendLine(`checkPossibleMistakes: sPossMist '${sPossMist}'`);
+				////gOutputChannel.appendLine(`checkPossibleMistakes: sPossMist '${sPossMist}'`);
 
 				var aMatches = lineText.text.match(RegExp(sPossMist, "gi"));
 				if (aMatches) {
