@@ -143,7 +143,7 @@ If a heading outside of any section and outside of main is found, it is assumed 
 
 * **torOpenURLCmd2**: command (2) to open an URL in Tor Browser (default is "xdotool search --onlyvisible --name 'Tor Browser' windowactivate --sync key --clearmodifiers --window 0 Return").
 
-* **userAgent**: User-Agent value used in Get requests (default is "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:86.0) Gecko/20100101 Firefox/86.0").
+* **userAgent**: User-Agent value used in Get requests (default is "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0").
 
 
 ### Limitations
@@ -338,6 +338,12 @@ or
 
 ### 6.0.0
 * Added support of Markdown files.
+
+### 6.1.0
+* Added support for local Markdown links to heading IDs "[link1](#heading1)".
+* Added support for Markdown headings automatically becoming local IDs, with spaces converted to dashes.
+* Updated default user-agent string to Firefox 89.
+
 ---
 
 
@@ -353,7 +359,9 @@ or
 * Snap version of VSCode uses `Alt+H` for Help menu.
 * Create automated tests.
 * Extension really is supposed to remove each diagnostic line after the corresponding source line is edited.
-* Bundle extension to make it smaller/faster ? https://code.visualstudio.com/api/working-with-extensions/bundling-extension
+* Bundle extension to make it smaller/faster ?
+https://code.visualstudio.com/api/working-with-extensions/bundling-extension
+https://webpack.js.org/guides/getting-started/
 * Can't really test IPv6 because my system and ISP have it turned off.
 * Allow single-quotes on attributes ?  I thought HTMLHint didn't allow them, so I didn't support them.
 * Don't check a link if it has rel="nofollow" ?  Probably should leave it as-is: check it.

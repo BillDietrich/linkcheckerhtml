@@ -1528,6 +1528,61 @@ function getMarkdownLinks(document: TextDocument): Promise<Link[]> {
             let lineText = document.lineAt(lineNumber);
 		    //gOutputChannel.appendLine(`getMarkdownLinks lineText.text '${lineText.text}'`);
 
+			// Explicit-ID heading definition looks like: # headingtext {#idhere}
+            var links = lineText.text.match(/^\#.+\{\#.+\}/gi);
+            if (links) {
+			    //gOutputChannel.appendLine(`getMarkdownLinks found an explicit-ID heading definition`);
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/^\#.+\{\#([^\}]*)\}/);
+                    let address = link[1];
+				    //gOutputChannel.appendLine(`getMarkdownLinks heading address '${address}'`);
+					if (gLocalAnchorNames.indexOf(address) >= 0) {
+						// duplicate definition
+						addDiagnostic(
+									lineNumber,
+									lineText.text.indexOf(address),
+									address.length,
+									DiagnosticSeverity.Error,
+									`Duplicate definition of ID '${address}'.`
+									);
+					} else {
+						// new definition
+                    	// Push it to the array
+                    	gLocalAnchorNames.push(address);
+					}
+                }
+            }
+
+			// Implicit-ID heading definition looks like: # headingtext
+			// Heading text is turned into an ID, with spaces replaced with dashes.
+            var links = lineText.text.match(/^\#[^\{]+$/gi);
+            if (links) {
+			    //gOutputChannel.appendLine(`getMarkdownLinks found an implicit-ID heading definition`);
+                // Iterate over the links found on this line
+                for (let i = 0; i< links.length; i++) {
+                    // Get the URL from each individual link
+                    var link = links[i].match(/^[\#]+\s*(.*)$/);
+                    let address = link[1];
+				    //gOutputChannel.appendLine(`getMarkdownLinks heading address '${address}'`);
+					if (gLocalAnchorNames.indexOf(address.replace(" ", "-")) >= 0) {
+						// duplicate definition
+						addDiagnostic(
+									lineNumber,
+									lineText.text.indexOf(address),
+									address.length,
+									DiagnosticSeverity.Warning,		// warning because maybe user is not expecting implicit
+									`Duplicate definition of ID '${address.replace(" ", "-")}'.`
+									);
+					} else {
+						// new definition
+                    	// Push it to the array
+                    	gLocalAnchorNames.push(address.replace(" ", "-"));
+					}
+                }
+            }
+
             // Are there links?
 
 			// Link or image looks like:  ](urlhere) or ](urlhere "texthere")

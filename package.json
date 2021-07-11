@@ -6,7 +6,7 @@
 		"name": "Bill Dietrich"
 	},
 	"icon": "linkcheckerhtmlicon.png",
-	"version": "6.0.0",
+	"version": "6.1.0",
 	"publisher": "BillDietrich",
 	"galleryBanner": {
 		"color": "#0000FF",
@@ -194,7 +194,7 @@
 					},
 					"linkcheckerhtml.userAgent": {
 						"type": "string",
-						"default": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:86.0) Gecko/20100101 Firefox/86.0",
+						"default": "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
 						"description": "User-Agent value used in Get requests."
 					},
 					"linkcheckerhtml.checkInternalLinks": {
@@ -246,7 +246,7 @@
 	"devDependencies": {
 		"@types/node": "^8.10.66",
 		"typescript": "^4.1.3",
-		"vsce": "^1.83.0",
+		"vsce": "^1.95.1",
 		"vscode": "^1.1.37"
 	},
 	"dependencies": {
