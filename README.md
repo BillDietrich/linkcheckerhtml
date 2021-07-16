@@ -340,15 +340,19 @@ or
 * Added support of Markdown files.
 
 ### 6.1.0
-* Added support for local Markdown links to heading IDs "[link1](#heading1)".
+* Added support for local Markdown links to heading IDs as in ```[link1](#heading1)```.
 * Added support for Markdown headings automatically becoming local IDs, with spaces converted to dashes.
 * Updated default user-agent string to Firefox 89.
+
+### 6.2.0
+* Tweak support for Markdown headings automatically becoming local IDs: take a heading, remove any leading spaces, change it to lowercase, remove everything not letter digit hyphen space, then change spaces to hyphens.
 
 ---
 
 
 ## Development
 ### To-Do list
+* In Markdown, prevent collisions when generating implicit header IDs ?  "# H" twice should generate IDs "h" and "h-1" ?
 * Add tasks to open and close all HTML files in directory, so linter reports any errors.
 * Maybe new axios has broken timeout ?
 * Somehow using xdotool to open onion link in Tor Browser has gotten broken.

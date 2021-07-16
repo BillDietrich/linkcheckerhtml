@@ -111,8 +111,9 @@ var gReportNonHandledSchemesSeverity: DiagnosticSeverity = DiagnosticSeverity.Er
 
 //------------------------------------------------------------------------------
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+// This method is called when your extension is activated.
+// Your extension is activated the very first time the command is executed.
+
 export function activate(extensionContext:ExtensionContext) {
     
 	//gOutputChannel = window.createOutputChannel("linkcheckerhtml");
@@ -180,7 +181,8 @@ const runShellCommand = async (command: string): Promise<any> => {
 
 //------------------------------------------------------------------------------
 
-// open an onion URL in Tor browser
+// Open an onion URL in Tor browser.
+
 export function openOnionURL(sURL: string) {
     //gOutputChannel.appendLine(`openOnionURL: called, sURL '${sURL}'`);
 
@@ -346,7 +348,8 @@ export function openOnionURL(sURL: string) {
 
 //------------------------------------------------------------------------------
 
-// open normal (non-Onion) URL in browser
+// Open normal (non-Onion) URL in browser.
+
 export function openNormalURL(sURL: string) {
     //gOutputChannel.appendLine(`openNormalURL: called, sURL '${sURL}'`);
 
@@ -359,7 +362,8 @@ export function openNormalURL(sURL: string) {
 
 //------------------------------------------------------------------------------
 
-// open current selected URL in browser
+// Open current selected URL in browser.
+
 export function openURL() {
     //gOutputChannel.appendLine(`openURL: called`);
 	let editor = window.activeTextEditor;
@@ -384,7 +388,8 @@ export function openURL() {
 }
 
 
-// open current selected HTTP URL as HTTPS URL in browser
+// Open current selected HTTP URL as HTTPS URL in browser.
+
 export function openURLasHTTPS() {
     //gOutputChannel.appendLine(`openURLasHTTPS: called`);
 	let editor = window.activeTextEditor;
@@ -412,7 +417,8 @@ export function openURLasHTTPS() {
 
 //------------------------------------------------------------------------------
 
-// clear all diagnostics belonging to this extension
+// Clear all diagnostics belonging to this extension.
+
 export function clearDiagnostics() {
     //gOutputChannel.appendLine(`clearDiagnostics: called`);
 
@@ -424,7 +430,8 @@ export function clearDiagnostics() {
 
 //------------------------------------------------------------------------------
 
-// read configuration values into global variables
+// Read configuration values into global variables.
+
 export function readConfiguration() {
 
     //gOutputChannel.appendLine(`readConfiguration: called`);
@@ -593,7 +600,8 @@ export function readConfiguration() {
 
 //------------------------------------------------------------------------------
 
-// Generate a report of broken links and the line they occur on
+// Generate a report of broken links and the line they occur on.
+
 function generateLinkReport() {
 
     //gOutputChannel.appendLine(`generateLinkReport: called`);
@@ -727,12 +735,11 @@ function generateLinkReport() {
 
 //------------------------------------------------------------------------------
 
-/**
- * Performs a list of callable actions (promise factories) so that only a limited
- * number of promises are pending at any given time.
- *
-  * @returns A Promise that resolves to the full list of values when everything is done.
- */
+// Performs a list of callable actions (promise factories) so that only a limited
+// number of promises are pending at any given time.
+//
+// Returns A Promise that resolves to the full list of values when everything is done.
+
 function throttleActions(links: Array<Link>, limit: number): Promise<any> {
 	//gOutputChannel.appendLine(`throttleActions: called, ${links.length} links, limit ${limit}`);
 
@@ -1098,7 +1105,8 @@ function doALink(link: Link): Promise<null> {
 
 //------------------------------------------------------------------------------
 
-// Parse the HTML Anchor links out of the document
+// Parse the HTML Anchor links out of the document.
+
 function getHtmlLinks(document: TextDocument): Promise<Link[]> {
     //gOutputChannel.appendLine(`getHtmlLinks called, document.uri '${document.uri}'`);
     // Return a promise, since this might take a while for large documents
@@ -1331,6 +1339,7 @@ function getHtmlLinks(document: TextDocument): Promise<Link[]> {
 // It's very permissive, because XML doesn't really define standard tag and
 // attribute names.  So it allows known stuff from RSS, and likely stuff
 // that could be in XML.
+
 function getXmlRssLinks(document: TextDocument): Promise<Link[]> {
     //gOutputChannel.appendLine(`getXmlRssLinks called, document.uri '${document.uri}'`);
     // Return a promise, since this might take a while for large documents
@@ -1510,8 +1519,24 @@ function getXmlRssLinks(document: TextDocument): Promise<Link[]> {
 
 //------------------------------------------------------------------------------
 
+// For Markdown document, convert heading text to implicit ID.
+// Change it to lowercase, remove everything not letter digit hyphen space,
+// then change spaces to hyphens.
+
+function markdownHeadingToID(sHeading: string): string {
+    //gOutputChannel.appendLine(`markdownHeadingToID called, sHeading '${sHeading}'`);
+	const regex1 = /[^a-z0-9\- ]/g;
+	const regex2 = / /g;
+	var sID = sHeading.toLowerCase().replace(regex1, "").replace(regex2, "-");
+    //gOutputChannel.appendLine(`markdownHeadingToID return, sID '${sID}'`);
+	return sID;
+}
+
+
+//------------------------------------------------------------------------------
+
 // Parse the links out of a Markdown document.
-//
+
 function getMarkdownLinks(document: TextDocument): Promise<Link[]> {
     //gOutputChannel.appendLine(`getMarkdownLinks called, document.uri '${document.uri}'`);
     // Return a promise, since this might take a while for large documents
@@ -1565,20 +1590,21 @@ function getMarkdownLinks(document: TextDocument): Promise<Link[]> {
                     // Get the URL from each individual link
                     var link = links[i].match(/^[\#]+\s*(.*)$/);
                     let address = link[1];
-				    //gOutputChannel.appendLine(`getMarkdownLinks heading address '${address}'`);
-					if (gLocalAnchorNames.indexOf(address.replace(" ", "-")) >= 0) {
+					let sID = markdownHeadingToID(address);
+				    //gOutputChannel.appendLine(`getMarkdownLinks heading ID '${sID}'`);
+					if (gLocalAnchorNames.indexOf(sID) >= 0) {
 						// duplicate definition
 						addDiagnostic(
 									lineNumber,
 									lineText.text.indexOf(address),
 									address.length,
 									DiagnosticSeverity.Warning,		// warning because maybe user is not expecting implicit
-									`Duplicate definition of ID '${address.replace(" ", "-")}'.`
+									`Duplicate definition of ID '${sID}'.`
 									);
 					} else {
 						// new definition
                     	// Push it to the array
-                    	gLocalAnchorNames.push(address.replace(" ", "-"));
+                    	gLocalAnchorNames.push(sID);
 					}
                 }
             }
@@ -1701,6 +1727,7 @@ function getMarkdownLinks(document: TextDocument): Promise<Link[]> {
 //------------------------------------------------------------------------------
 
 // Scan document for possible bad chars.
+
 function checkBadChars(document: TextDocument): Promise<string> {
 
     //gOutputChannel.appendLine(`checkBadChars called, document.uri '${document.uri}'`);
@@ -1741,6 +1768,7 @@ function checkBadChars(document: TextDocument): Promise<string> {
 //------------------------------------------------------------------------------
 
 // Scan document for possible mistakes.
+
 function checkPossibleMistakes(document: TextDocument): Promise<string> {
 
     //gOutputChannel.appendLine(`checkPossibleMistakes called, document.uri '${document.uri}'`);
@@ -2004,6 +2032,7 @@ function scanSemanticHTML(document: TextDocument): Promise<string> {
 //------------------------------------------------------------------------------
 
 // Is this an HTTP or HTTPS link?
+
 function isHttpLink(UriToCheck: string): boolean {
 	var bRetVal = UriToCheck.toLowerCase().startsWith('http://');
 	if (!bRetVal)
@@ -2015,6 +2044,7 @@ function isHttpLink(UriToCheck: string): boolean {
 
 
 // Is this an HTTP link?
+
 function isPlainHttpLink(UriToCheck: string): boolean {
 	var bRetVal = UriToCheck.toLowerCase().startsWith('http://');
     return bRetVal;
@@ -2022,6 +2052,7 @@ function isPlainHttpLink(UriToCheck: string): boolean {
 
 
 // Is this an onion link?
+
 function isOnionLink(UriToCheck: string): boolean {
 	var bRetVal = UriToCheck.toLowerCase().startsWith('https://');
 	if (bRetVal)
@@ -2031,6 +2062,7 @@ function isOnionLink(UriToCheck: string): boolean {
 
 
 // Get domain name from an onion link
+
 function getDomainFromOnionLink(UriToCheck: string): string {
 	var domains = UriToCheck.match(/https:\/\/(.*\.onion)/);
 	let domain = domains[1];
@@ -2039,6 +2071,7 @@ function getDomainFromOnionLink(UriToCheck: string): string {
 
 
 // Is this a non-HTTP* link?
+
 function isNonHTTPLink(UriToCheck: string): boolean {
 	var bRetVal = UriToCheck.toLowerCase().startsWith('ftp://');
 	if (!bRetVal)
@@ -2062,6 +2095,7 @@ function isNonHTTPLink(UriToCheck: string): boolean {
 
 
 // Is this a mailto link?
+
 function isMailtoLink(UriToCheck: string): boolean {
 	var bRetVal = UriToCheck.toLowerCase().startsWith('mailto:');
     return bRetVal;
@@ -2074,6 +2108,7 @@ function isMailtoLink(UriToCheck: string): boolean {
 //		mailto:bill@corp.com?lotsmorestuff (we won't check the lotsmorestuff)
 // https://en.wikipedia.org/wiki/Email_address#Syntax
 // Doesn't check for lots of details such as "hyphen can't be first or last char of domain name"
+
 function isWellFormedMailtoLink(UriToCheck: string): boolean {
 	//gOutputChannel.appendLine(`isWellFormedMailtoLink: called, UriToCheck '${UriToCheck}'`);
 	var regex1 = /mailto:[a-z0-9\!\#\$\%\&\'\*\+\-\/\=\^\_\`\{\|\}\~\.\+\_]+@[a-z0-9\-]+\.[a-z0-9\-\.]+$/i;

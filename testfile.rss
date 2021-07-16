@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>test RSS file</title>
+<description>Test description.</description>
+
+# all valid:
+
+<link>testfile.html</link>
+
+<atom:link href="testfile.html" rel="self" type="application/rss+xml" />
+
+<image>
+	<url>testfile.html</url>
+	<title>test RSS file</title>
+	<link>testfile.html</link>
+</image>
+
+<enclosure url="testfile.html" length="5000" type="audio/mpeg" /> 
+
+<picture url="testfile.html" />
+
+<homepage xlink:type="simple" xlink:href="testfile.html">any name here</homepage>
+
+<item>
+<title>misc1</title>
+<description>misc1</description>
+<link>testfile.html</link>
+<guid>testfile.html</guid>
+</item>
+
+# all invalid:
+
+<link>nosuchfile.html</link>
+
+<atom:link href="nosuchfile.html" rel="self" type="application/rss+xml" />
+
+<image>
+	<url>nosuchfile.html</url>
+	<title>test RSS file</title>
+	<link>nosuchfile.html</link>
+</image>
+
+<enclosure url="nosuchfile.html" length="5000" type="audio/mpeg" /> 
+
+<picture url="nosuchfile.html" /> 
+
+<homepage xlink:type="simple" xlink:href="nosuchfile.html">any name here</homepage>
+
+<item>
+<title>misc1</title>
+<description>misc1</description>
+<link>nosuchfile.html</link>
+<guid>nosuchfile.html</guid>
+</item>
+
+</channel>
+</rss>
