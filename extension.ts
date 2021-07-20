@@ -1611,15 +1611,15 @@ function getMarkdownLinks(document: TextDocument): Promise<Link[]> {
 
             // Are there links?
 
-			// Link or image looks like:  ](urlhere) or ](urlhere "texthere")
+			// Link or image looks like:  [identifier](urlhere) or [identifier](urlhere "texthere")
 		    //gOutputChannel.appendLine(`getMarkdownLinks match1`);
-            var links = lineText.text.match(/\]\([^ \)]*[ \)]/gi);
+            var links = lineText.text.match(/\[[^\]]+\]\([^ \)]+[ \)]/gi);
             if (links) {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
 				    //gOutputChannel.appendLine(`getMarkdownLinks match2`);
-                    var link = links[i].match(/\]\(([^ \)]*)/);
+                    var link = links[i].match(/\[[^\]]+\]\(([^ \)]+)/);
                     let address = link[1];
 				    //gOutputChannel.appendLine(`getMarkdownLinks address1 '${address}'`);
 					if (!DontCheck(address)) {
@@ -1643,17 +1643,17 @@ function getMarkdownLinks(document: TextDocument): Promise<Link[]> {
                 }
             }
 
-			// Reference-style link looks like:  ]: <urlhere>
+			// Reference-style link looks like:  [identifier]: <urlhere>
 			// where space is mandatory but <> are optional.
 			// Do with-<> case first.
 		    //gOutputChannel.appendLine(`getMarkdownLinks match3`);
-            var links = lineText.text.match(/\]:\s+<[^>]*>/gi);
+            var links = lineText.text.match(/\[[^\]]+\]:\s+<[^>]+>/gi);
             if (links) {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
 				    //gOutputChannel.appendLine(`getMarkdownLinks match4`);
-                    var link = links[i].match(/\]:\s+<([^>]*)>/);
+                    var link = links[i].match(/\[[^\]]+\]:\s+<([^>]+)>/);
                     let address = link[1];
 				    //gOutputChannel.appendLine(`getMarkdownLinks address2 '${address}'`);
 					if (!DontCheck(address)) {
@@ -1677,17 +1677,17 @@ function getMarkdownLinks(document: TextDocument): Promise<Link[]> {
                 }
             }
 
-			// Reference-style link looks like:  ]: <urlhere>
+			// Reference-style link looks like:  [identifier]: <urlhere>
 			// where space is mandatory but <> are optional.
 			// Do without-<> case.
 		    //gOutputChannel.appendLine(`getMarkdownLinks match5`);
-            var links = lineText.text.match(/\]:\s+[^<>\s]*\s+/gi);
+            var links = lineText.text.match(/\[[^\]]+\]:\s+[^<>\s]+/gi);
             if (links) {
                 // Iterate over the links found on this line
                 for (let i = 0; i< links.length; i++) {
                     // Get the URL from each individual link
 				    //gOutputChannel.appendLine(`getMarkdownLinks match6`);
-                    var link = links[i].match(/\]:\s+([^\s]*)\s+/);
+                    var link = links[i].match(/\[[^\]]+\]:\s+([^\s]+)/);
                     let address = link[1];
 				    //gOutputChannel.appendLine(`getMarkdownLinks address2 '${address}'`);
 					if (!DontCheck(address)) {

@@ -345,7 +345,12 @@ or
 * Updated default user-agent string to Firefox 89.
 
 ### 6.2.0
-* Tweak support for Markdown headings automatically becoming local IDs: take a heading, remove any leading spaces, change it to lowercase, remove everything not letter digit hyphen space, then change spaces to hyphens.
+* Tweaked support for Markdown headings automatically becoming local IDs: take a heading, remove any leading spaces, change it to lowercase, remove everything not letter digit hyphen space, then change spaces to hyphens.
+
+### 6.3.0
+* In Markdown, added requirement for ```[identifier``` at start of link.
+* Updated npm and modules.
+
 
 ---
 
@@ -379,10 +384,10 @@ https://webpack.js.org/guides/getting-started/
 I'm no expert on this stuff, maybe I'm doing some things stupidly.
 
 Now using:
-* Kubuntu 20.10
-* VSCode deb 1.54.2 (which says Node.js: 12.18.3)
-* ```node --version```	# v12.18.2
-* ```npm --version```	# npm --version
+* Fedora 34 KDE with X.
+* VSCode deb 1.58.2 (which says Node.js: 14.16.0)
+* ```node --version```	# v14.17.0
+* ```npm --version```	# 6.14.13
 * axios
 * path
 * fs

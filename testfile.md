@@ -1,5 +1,4 @@
-# HTML / XML / RSS link checker
-VSCode extension that checks for broken links in an HTML, XML, RSS, or PHP file.
+# Test file to check Markdown errors
 
 
 ![Using the extension](nosuchfile1.jpg "Using the extension")
@@ -10,6 +9,7 @@ VSCode extension that checks for broken links in an HTML, XML, RSS, or PHP file.
 
 [My web site](nosuchfile4.html)
 
+these two should be okay
 [hobbit-hole] [1]
 [hobbit-hole][2]
 
@@ -18,12 +18,13 @@ VSCode extension that checks for broken links in an HTML, XML, RSS, or PHP file.
 
 ### My Great Heading {#custom-id}
 
-[Link to heading](#custom-id)
+[Link to good heading](#custom-id)
 
 [Link to bad heading](#bad-id)
 
 ### My Heading 2 {#dup-id}
 
+this one should fail
 ### My Heading 3 {#dup-id}
 
 
@@ -31,8 +32,12 @@ VSCode extension that checks for broken links in an HTML, XML, RSS, or PHP file.
 
 [Link to another heading](#another-heading)
 
+this should be flagged as dup
 #Another Heading
 
+
+not a link, should be ignored ?
+[*]: Project finished
 
 
 
@@ -59,14 +64,15 @@ VSCode extension that checks for broken links in an HTML, XML, RSS, or PHP file.
 [Number of # does not matter](#another-lower-case-heading)  
 [Partly Ignore brackets](#heading--with-brackets)  
 [Partly Ignore Slash](#heading--with-slash)  
-[Completely Ignore brackets](#heading-with-brackets)  
-[Completely Ignore Slash](#heading-with-slash)  
 [keep minus](#heading---with--minus)  
+[More #1](#markdown)  
 
 ## Wrong links
 
+[Completely Ignore brackets](#heading-with-brackets)  
+[Completely Ignore Slash](#heading-with-slash)  
 [Shows OK, but is wrong](#MARKDOWN)  
-[More #](##markdown)  
 [Wrong handling of brackets](#heading---with--brackets)  
 [Wrong handling of Slash](#heading---with--slash)  
 [Wrong handling of minus](#heading--with-minus)  
+[More #2](##markdown)  
